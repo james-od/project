@@ -113,8 +113,8 @@
         networkcube.addEventListener('timeRange', timeChangedHandler)
     }
 
+ 
 
-    
     $('#visDiv').append('<svg id="visSvg" width="'+(width-20)+'" height="'+(height-20)+'"></svg>');
     
     var mouseStart:number[];

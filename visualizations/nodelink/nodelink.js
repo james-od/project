@@ -24,9 +24,21 @@ var times = dgraph.times().toArray();
 var time_start = times[0];
 var time_end = times[times.length - 1];
 var nodes = dgraph.nodes().toArray();
+
 var nodesOrderedByDegree = dgraph.nodes().toArray().sort(function (n1, n2) { return n2.neighbors().length - n1.neighbors().length; });
 var nodePairs = dgraph.nodePairs();
 var links = dgraph.links().toArray();
+
+console.log(dgraph)
+
+numberOfLinksAtEachTimeJump = [];
+timesForLinks = dgraph.timeArrays.label;
+for(i=0; i < dgraph.timeArrays.links.length; i++){
+    numberOfLinksAtEachTimeJump.push(dgraph.timeArrays.links[i].length);
+}
+console.log(numberOfLinksAtEachTimeJump)
+
+
 var nodeLength = nodes.length;
 var hiddenLabels = [];
 var LABELING_STRATEGY = 1;
@@ -466,6 +478,50 @@ function stretchVector(vec, finalLength) {
     }
     return vec;
 }
+
+$(document).on("keypress", function (e) {
+    console.log(e.which);
+    if(e.which == 103){
+        showEdgesGraph()
+    }
+    if(e.which == 99){
+        clearEdgesGraph()
+    }
+});
+
+function showEdgesGraph(){
+    $('#visDiv').append('<canvas id=myCanvas></canvas>');
+    var canvas = document.getElementById("myCanvas");
+    var theContext = canvas.getContext("2d");
+    var sales = numberOfLinksAtEachTimeJump;
+    var width = 300;
+    var height = 100;
+    var uSpacing = 10;
+    var border = 20;
+    var scalar = 100;
+    var offset = (1 / (sales.length - 1)) * width;
+
+    canvas.style.top = "200px"
+    canvas.style.position = "absolute"
+
+    theContext.strokeRect(0, 0, width, height)
+  
+    theContext.beginPath();
+    theContext.moveTo(0, sales[0]);
+    for (var x = 1; x < sales.length; x++) {
+      console.log("x is ", x, "sales x is ", sales[x])
+      console.log(timesForLinks[x])
+      theContext.lineTo(x * offset, 100 - sales[x]);
+    }
+    theContext.stroke();
+}
+
+function clearEdgesGraph(){
+    var canvas = document.getElementById("myCanvas");
+    const context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
+}
+
 function showMessage(message) {
     if ($('#messageBox'))
         $('#messageBox').remove();

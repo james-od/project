@@ -515,8 +515,9 @@ $(document).on("keypress", function (e) {
 });
 
 function showEdgesGraph(){
-    $('#visDiv').append('<canvas id=myCanvas></canvas>');
+    $('#visDiv').append('<div id=edgesGraph>Edges Over time<canvas id=myCanvas></canvas></div>');
     var canvas = document.getElementById("myCanvas");
+    var edgesGraph = document.getElementById("edgesGraph");
     var theContext = canvas.getContext("2d");
     var sales = numberOfLinksAtEachTimeJump;
     var width = 300;
@@ -526,11 +527,11 @@ function showEdgesGraph(){
     var scalar = 100;
     var offset = (1 / (sales.length - 1)) * width;
 
-    canvas.style.top = "200px"
-    canvas.style.position = "absolute"
+    edgesGraph.style.top = "200px"
+    edgesGraph.style.position = "absolute"
 
     theContext.strokeRect(0, 0, width, height)
-  
+
     theContext.beginPath();
     theContext.moveTo(0, sales[0]);
     for (var x = 1; x < sales.length; x++) {
@@ -542,9 +543,9 @@ function showEdgesGraph(){
 }
 
 function clearEdgesGraph(){
-    var canvas = document.getElementById("myCanvas");
-    const context = canvas.getContext('2d');
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    var edgesGraph = document.getElementById("edgesGraph");
+    const context = edgesGraph.getContext('2d');
+    context.clearRect(0, 0, edgesGraph.width, edgesGraph.height);
 }
 
 function showMessage(message) {

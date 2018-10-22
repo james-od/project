@@ -35,7 +35,7 @@ for(i=0; i < dgraph.timeArrays.links.length; i++){
     numberOfLinksAtEachTimeJump.push(dgraph.timeArrays.links[i].length);
 }
 
-console.log("===========")
+//console.log("===========")
 console.log(dgraph)
 /*
 console.log(dgraph.timeArrays.links[0])
@@ -49,19 +49,19 @@ console.log(dgraph.linkArrays.target[dgraph.timeArrays.links[1][0]])
 
 nodeSetLengthAtEachPoint = [];
 for(i=0; i<dgraph.timeArrays.links.length; i++){
-    console.log(dgraph.timeArrays.links[i])
+    //console.log(dgraph.timeArrays.links[i])
     let nodesAtThisPoint = new Set();
     for(j=0; j<dgraph.timeArrays.links[i].length; j++){
         nodesAtThisPoint.add( dgraph.linkArrays.source[dgraph.timeArrays.links[i][j]] )
         nodesAtThisPoint.add( dgraph.linkArrays.target[dgraph.timeArrays.links[i][j]] )
     }
-    console.log(nodesAtThisPoint)
-    nodeSetLengthAtEachPoint.push(nodesAtThisPoint.size) 
+    //console.log(nodesAtThisPoint)
+    nodeSetLengthAtEachPoint.push(nodesAtThisPoint.size)
     //this could be useful later to get the connected nodes a each time point
 
     //Dont think this works because it only shows when new nodes are added, not when they're removedi
 }
-console.log(nodeSetLengthAtEachPoint)
+
 
 
 var nodeLength = nodes.length;
@@ -509,23 +509,30 @@ $(document).on("keypress", function (e) {
     if(e.which == 103){
         showEdgesGraph()
     }
+    if(e.which == 104){
+      showConnectedNodesGraph()
+    }
+    if(e.which == 106){
+      showDensityGraph()
+    }
     if(e.which == 99){
-        clearEdgesGraph()
+        clearCanvas()
     }
 });
 
 function showEdgesGraph(){
-    $('#visDiv').append('<div id=edgesGraph>Edges Over time<canvas id=myCanvas></canvas></div>');
+    clearCanvas()
+    $('#visDiv').append('<div id=edgesGraph><text id=graphTitle>Edges Over time</text><canvas id=myCanvas></canvas></div>');
     var canvas = document.getElementById("myCanvas");
     var edgesGraph = document.getElementById("edgesGraph");
     var theContext = canvas.getContext("2d");
-    var sales = numberOfLinksAtEachTimeJump;
+    var X = numberOfLinksAtEachTimeJump;
     var width = 300;
     var height = 100;
     var uSpacing = 10;
     var border = 20;
     var scalar = 100;
-    var offset = (1 / (sales.length - 1)) * width;
+    var offset = (1 / (X.length - 1)) * width;
 
     edgesGraph.style.top = "200px"
     edgesGraph.style.position = "absolute"
@@ -533,19 +540,92 @@ function showEdgesGraph(){
     theContext.strokeRect(0, 0, width, height)
 
     theContext.beginPath();
-    theContext.moveTo(0, sales[0]);
-    for (var x = 1; x < sales.length; x++) {
-      console.log("x is ", x, "sales x is ", sales[x])
-      console.log(timesForLinks[x])
-      theContext.lineTo(x * offset, 100 - sales[x]);
+    theContext.moveTo(0, X[0]);
+    for (var x = 1; x < X.length; x++) {
+      //console.log(timesForLinks[x])
+      theContext.lineTo(x * offset, 100 - X[x]);
+    }
+    theContext.stroke();
+}
+console.log("CHECKIT")
+console.log(nodeSetLengthAtEachPoint)
+console.log(numberOfLinksAtEachTimeJump)
+
+function showConnectedNodesGraph(){
+    clearCanvas()
+    $('#visDiv').append('<div id=nodesGraph><text id=graphTitle>Connected Nodes Over time</text><canvas id=myCanvas></canvas></div>');
+    var canvas = document.getElementById("myCanvas");
+    var nodesGraph = document.getElementById("nodesGraph");
+    var theContext = canvas.getContext("2d");
+    var X = nodeSetLengthAtEachPoint;
+    var width = 300;
+    var height = 100;
+    var uSpacing = 10;
+    var border = 20;
+    var scalar = 100;
+    var offset = (1 / (X.length - 1)) * width;
+
+    nodesGraph.style.top = "200px"
+    nodesGraph.style.position = "absolute"
+
+    theContext.strokeRect(0, 0, width, height)
+
+    theContext.beginPath();
+    theContext.moveTo(0, X[0]);
+    for (var x = 1; x < X.length; x++) {
+      //console.log(timesForLinks[x])
+      theContext.lineTo(x * offset, 100 - X[x]);
     }
     theContext.stroke();
 }
 
-function clearEdgesGraph(){
-    var edgesGraph = document.getElementById("edgesGraph");
-    const context = edgesGraph.getContext('2d');
-    context.clearRect(0, 0, edgesGraph.width, edgesGraph.height);
+function calculateDensity(edges, nodes){
+  ret = []
+  i = 0
+  while(i < edges.length){
+    ret.push( (edges[i]) / (nodes[i] * (nodes[i] - 1)) )
+    i += 1
+  }
+  console.log(ret)
+  return ret
+}
+
+function showDensityGraph(){
+    clearCanvas()
+    $('#visDiv').append('<div id=densityGraph><text id=graphTitle>Density over time</text><canvas id=myCanvas></canvas></div>');
+    var canvas = document.getElementById("myCanvas");
+    var densityGraph = document.getElementById("densityGraph");
+    var theContext = canvas.getContext("2d");
+    var X = calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint);
+    var width = 300;
+    var height = 100;
+    var uSpacing = 10;
+    var border = 20;
+    var scalar = 100;
+    var offset = (1 / (X.length - 1)) * width;
+
+    densityGraph.style.top = "200px"
+    densityGraph.style.position = "absolute"
+
+    theContext.strokeRect(0, 0, width, height)
+
+    theContext.beginPath();
+    theContext.moveTo(0, X[0]);
+    for (var x = 1; x < X.length; x++) {
+      //console.log(timesForLinks[x])
+      theContext.lineTo(x * offset, 100 - (X[x]*50));
+    }
+    theContext.stroke();
+}
+
+function clearCanvas(){
+  var title = document.getElementById("graphTitle");
+  if(title){ while (title.firstChild) title.removeChild(title.firstChild);}
+  var canvas = document.getElementById("myCanvas");
+  if(canvas){
+    const context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
+  }
 }
 
 function showMessage(message) {

@@ -29,14 +29,39 @@ var nodesOrderedByDegree = dgraph.nodes().toArray().sort(function (n1, n2) { ret
 var nodePairs = dgraph.nodePairs();
 var links = dgraph.links().toArray();
 
-console.log(dgraph)
-
 numberOfLinksAtEachTimeJump = [];
 timesForLinks = dgraph.timeArrays.label;
 for(i=0; i < dgraph.timeArrays.links.length; i++){
     numberOfLinksAtEachTimeJump.push(dgraph.timeArrays.links[i].length);
 }
-console.log(numberOfLinksAtEachTimeJump)
+
+console.log("===========")
+console.log(dgraph)
+/*
+console.log(dgraph.timeArrays.links[0])
+console.log(dgraph.linkArrays.source[dgraph.timeArrays.links[0][0]])
+console.log(dgraph.linkArrays.target[dgraph.timeArrays.links[0][0]])
+
+console.log(dgraph.timeArrays.links[1])
+console.log(dgraph.linkArrays.source[dgraph.timeArrays.links[1][0]])
+console.log(dgraph.linkArrays.target[dgraph.timeArrays.links[1][0]])
+*/
+
+nodeSetLengthAtEachPoint = [];
+for(i=0; i<dgraph.timeArrays.links.length; i++){
+    console.log(dgraph.timeArrays.links[i])
+    let nodesAtThisPoint = new Set();
+    for(j=0; j<dgraph.timeArrays.links[i].length; j++){
+        nodesAtThisPoint.add( dgraph.linkArrays.source[dgraph.timeArrays.links[i][j]] )
+        nodesAtThisPoint.add( dgraph.linkArrays.target[dgraph.timeArrays.links[i][j]] )
+    }
+    console.log(nodesAtThisPoint)
+    nodeSetLengthAtEachPoint.push(nodesAtThisPoint.size) 
+    //this could be useful later to get the connected nodes a each time point
+
+    //Dont think this works because it only shows when new nodes are added, not when they're removedi
+}
+console.log(nodeSetLengthAtEachPoint)
 
 
 var nodeLength = nodes.length;
@@ -531,3 +556,4 @@ function unshowMessage() {
     if ($('#messageBox'))
         $('#messageBox').remove();
 }
+console.log(dgraph)

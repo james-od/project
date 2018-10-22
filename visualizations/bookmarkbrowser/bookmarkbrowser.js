@@ -10,6 +10,7 @@ networkcube.setDefaultEventListener(updateLists);
 networkcube.addEventListener('searchResult', searchResultHandler);
 createSelectionCategory('Node Selections', 'node');
 createSelectionCategory('Link Selections', 'link');
+createSelectionCategory('Measure Selections', 'measure');
 updateLists();
 function createSelectionCategory(name, type) {
     var nodeDiv = d3.select('body').append('div')
@@ -33,6 +34,7 @@ function createSelection(type) {
 function updateLists() {
     updateList('node', 'Node Selections');
     updateList('link', 'Link Selections');
+    updateMeasureList('measure', 'Measure Selections');
     d3.selectAll('.icon_showColor')
         .attr('xlink:href', function (d) { if (d.showColor)
         return 'drop-full.png'; return 'drop-empty.png'; });
@@ -42,8 +44,67 @@ function updateLists() {
     d3.selectAll('.selectionLabel')
         .text(function (d) { return d.name + ' (' + d.elementIds.length + ')'; });
 }
+
+function updateMeasureList() {
+    var measures = ['Connected Nodes', 'Edges', 'Clusters', 'Density', 'Connected Components', 'Diameter', 'Centrality', 'Volatility']
+    var title = d3.select('#title_measure');
+    title.html('Measure Selections' + ' (' + measures.length + ')');
+    
+    d3.select('#div_measure')
+        .selectAll('.selectionDiv_measure')
+        .remove();
+    var measureGs = d3.select('#div_measure')
+        .selectAll('.selectionDiv_measure')
+        .data(measures)
+        .enter()
+        .append('div')
+        .attr('height', LINE_HEIGHT)
+        .attr('width', width)
+//        .append('text')
+//        .attr('x', '23')
+//        .attr('y', '10.4')
+//        .style('font-size', '13px')
+//        .text(function(d){
+//            return d;
+//        }).append('svg')
+//        .attr('height', LINE_HEIGHT)
+//        .attr('width', width)
+
+    measureGs.append('text')
+        .attr('x', '23')
+        .attr('y', '10.4')
+        .style('font-size', '13px')
+        .text(function(d){
+            return d;
+        })
+        .append('br')
+    measureGs.append('input')
+        .attr('type', 'checkbox')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', RECT_SIZE)
+        .attr('height', RECT_SIZE)
+        .style('fill', function (d) { return "red"; });
+/*
+        .attr('font-family', 'Helvetica')
+        .attr('x', RECT_SIZE + 10)
+        .attr('y', RECT_SIZE * .8)
+        .append('br');
+
+        .attr('class', 'selectionDiv_measure')
+        .attr('height', LINE_HEIGHT)
+        .append('svg')
+        .attr('class', 'svg_measure')
+        .attr('height', LINE_HEIGHT)
+        .attr('width', width)
+        .append('g')
+        .attr('transform', 'translate(' + INTENT + ',0)');
+*/
+}
+
 function updateList(type, name) {
     var selections = dgraph.getSelections(type);
+    console.log(selections)
     var title = d3.select('#title_' + type);
     title.html(name + ' (' + selections.length + ')');
     d3.select('#div_' + type)

@@ -35,27 +35,13 @@ for(i=0; i < dgraph.timeArrays.links.length; i++){
     numberOfLinksAtEachTimeJump.push(dgraph.timeArrays.links[i].length);
 }
 
-//console.log("===========")
-console.log(dgraph)
-/*
-console.log(dgraph.timeArrays.links[0])
-console.log(dgraph.linkArrays.source[dgraph.timeArrays.links[0][0]])
-console.log(dgraph.linkArrays.target[dgraph.timeArrays.links[0][0]])
-
-console.log(dgraph.timeArrays.links[1])
-console.log(dgraph.linkArrays.source[dgraph.timeArrays.links[1][0]])
-console.log(dgraph.linkArrays.target[dgraph.timeArrays.links[1][0]])
-*/
-
 nodeSetLengthAtEachPoint = [];
 for(i=0; i<dgraph.timeArrays.links.length; i++){
-    //console.log(dgraph.timeArrays.links[i])
     let nodesAtThisPoint = new Set();
     for(j=0; j<dgraph.timeArrays.links[i].length; j++){
         nodesAtThisPoint.add( dgraph.linkArrays.source[dgraph.timeArrays.links[i][j]] )
         nodesAtThisPoint.add( dgraph.linkArrays.target[dgraph.timeArrays.links[i][j]] )
     }
-    //console.log(nodesAtThisPoint)
     nodeSetLengthAtEachPoint.push(nodesAtThisPoint.size)
     //this could be useful later to get the connected nodes a each time point
 
@@ -193,7 +179,6 @@ showMessage('Calculating<br/>layout');
 init();
 function init() {
     var _this = this;
-    console.log(nodes.length);
     visualNodes = nodeLayer.selectAll('nodes')
         .data(nodes)
         .enter()
@@ -345,6 +330,7 @@ function mouseOutNode(n) {
     networkcube.highlight('reset');
 }
 function timeChangedHandler(m) {
+    console.log("Time changed")
     time_start = times[0];
     time_end = times[times.length - 1];
     for (var i = 0; i < times.length; i++) {
@@ -417,7 +403,10 @@ function updateNodes() {
         || (LABELING_STRATEGY == 3 && e.neighbors().highlighted().length > 0)
         ? 'visible' : 'hidden'; });
 }
+
 function updateLinks() {
+    inEachTimeRange = {}
+    console.log("updating links")
     visualLinks
         .style('stroke', function (d) {
         var color = networkcube.getPriorityColor(d);
@@ -431,6 +420,19 @@ function updateLinks() {
             || !d.source.isVisible()
             || !d.target.isVisible())
             return 0;
+        i = 0
+        // while(i < times.length - 1){
+        //   //console.log("in times range " + i +" " + (i+1))
+        //   console.log("yo")
+        //   // if(d.presentIn(times[i], times[i+1])){
+        //   //   if(inEachTimeRange[i]){
+        //   //     inEachTimeRange[i].push(d)
+        //   //   }else{
+        //   //     inEachTimeRange[i] = [d]
+        //   //   }
+        //   // }
+        //   i+=1
+        // }
         if (d.presentIn(time_start, time_end)) {
             return d.isHighlighted() || d.source.isHighlighted() || d.target.isHighlighted() ?
                 Math.min(1, LINK_OPACITY + .2) : LINK_OPACITY;
@@ -443,6 +445,7 @@ function updateLinks() {
         var w = linkWeightScale(d.weights(time_start, time_end).mean());
         return d.isHighlighted() ? w * 2 : w;
     });
+    console.log(inEachTimeRange)
 }
 function calculateCurvedLinks() {
     var path, dir, offset, offset2, multiLink;
@@ -521,60 +524,72 @@ $(document).on("keypress", function (e) {
 });
 
 function showEdgesGraph(){
-    clearCanvas()
+    //clearCanvas()
     $('#visDiv').append('<div id=edgesGraph><text id=graphTitle>Edges Over time</text><canvas id=myCanvas></canvas></div>');
     var canvas = document.getElementById("myCanvas");
     var edgesGraph = document.getElementById("edgesGraph");
     var theContext = canvas.getContext("2d");
+    theContext.canvas.width = $('#visDiv').width() * 0.95;
     var X = numberOfLinksAtEachTimeJump;
-    var width = 300;
-    var height = 100;
-    var uSpacing = 10;
-    var border = 20;
-    var scalar = 100;
+    var width = $('#visDiv').width() * 0.95;
+    var height = 50;
     var offset = (1 / (X.length - 1)) * width;
 
-    edgesGraph.style.top = "200px"
+    edgesGraph.style.top = "100px"
+    edgesGraph.style.left = "15px"
     edgesGraph.style.position = "absolute"
 
     theContext.strokeRect(0, 0, width, height)
 
     theContext.beginPath();
-    theContext.moveTo(0, X[0]);
+    theContext.moveTo(0, 50 - (X[0]/2));
     for (var x = 1; x < X.length; x++) {
-      //console.log(timesForLinks[x])
-      theContext.lineTo(x * offset, 100 - X[x]);
+      theContext.lineTo(x * offset, 50 - (X[x]/2));
     }
     theContext.stroke();
 }
-console.log("CHECKIT")
+
+console.log("Values used for Nodes Graph:")
 console.log(nodeSetLengthAtEachPoint)
-console.log(numberOfLinksAtEachTimeJump)
+console.log("Values used for Edges Graph:")
+console.log(JSON.stringify(numberOfLinksAtEachTimeJump))
+
+lengthsOfMatrixRows = []
+
+i = 0
+while(i < dgraph.matrix.length){
+  var filtered = dgraph.matrix[i].filter(function (el) {
+      return el != null;
+  });
+  lengthsOfMatrixRows.push(filtered.length)
+  i+=1
+}
+console.log(lengthsOfMatrixRows)
+
 
 function showConnectedNodesGraph(){
-    clearCanvas()
+    //clearCanvas()
     $('#visDiv').append('<div id=nodesGraph><text id=graphTitle>Connected Nodes Over time</text><canvas id=myCanvas></canvas></div>');
     var canvas = document.getElementById("myCanvas");
     var nodesGraph = document.getElementById("nodesGraph");
     var theContext = canvas.getContext("2d");
+    theContext.canvas.width = $('#visDiv').width() * 0.95;
     var X = nodeSetLengthAtEachPoint;
-    var width = 300;
-    var height = 100;
-    var uSpacing = 10;
-    var border = 20;
-    var scalar = 100;
+    var width = $('#visDiv').width() * 0.95;
+    var height = 50;
     var offset = (1 / (X.length - 1)) * width;
 
-    nodesGraph.style.top = "200px"
+    nodesGraph.style.top = "100px"
+    nodesGraph.style.left = "15px"
     nodesGraph.style.position = "absolute"
 
     theContext.strokeRect(0, 0, width, height)
 
     theContext.beginPath();
-    theContext.moveTo(0, X[0]);
+    theContext.moveTo(0, 50 - (X[0]/2));
     for (var x = 1; x < X.length; x++) {
       //console.log(timesForLinks[x])
-      theContext.lineTo(x * offset, 100 - X[x]);
+      theContext.lineTo(x * offset, 50 - (X[x]/2));
     }
     theContext.stroke();
 }
@@ -586,34 +601,31 @@ function calculateDensity(edges, nodes){
     ret.push( (edges[i]) / (nodes[i] * (nodes[i] - 1)) )
     i += 1
   }
-  console.log(ret)
   return ret
 }
 
 function showDensityGraph(){
-    clearCanvas()
+    //clearCanvas()
     $('#visDiv').append('<div id=densityGraph><text id=graphTitle>Density over time</text><canvas id=myCanvas></canvas></div>');
     var canvas = document.getElementById("myCanvas");
     var densityGraph = document.getElementById("densityGraph");
     var theContext = canvas.getContext("2d");
+    theContext.canvas.width = $('#visDiv').width() * 0.95;
     var X = calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint);
-    var width = 300;
-    var height = 100;
-    var uSpacing = 10;
-    var border = 20;
-    var scalar = 100;
+    var width = $('#visDiv').width() * 0.95;
+    var height = 50;
     var offset = (1 / (X.length - 1)) * width;
 
-    densityGraph.style.top = "200px"
+    densityGraph.style.top = "100px"
+    densityGraph.style.left = "15px"
     densityGraph.style.position = "absolute"
 
     theContext.strokeRect(0, 0, width, height)
 
     theContext.beginPath();
-    theContext.moveTo(0, X[0]);
+    theContext.moveTo(0, 50 - (X[0]*25));
     for (var x = 1; x < X.length; x++) {
-      //console.log(timesForLinks[x])
-      theContext.lineTo(x * offset, 100 - (X[x]*50));
+      theContext.lineTo(x * offset, 50 - (X[x]*25));
     }
     theContext.stroke();
 }

@@ -456,6 +456,7 @@ var SmartSlider = (function () {
             .call(this.drag);
     };
     SmartSlider.prototype.dragStart = function () {
+        console.log("Started moving slider!!")
         this.dragStartXMouse = Math.max(this.LEFT, Math.min(this.width - this.RIGHT, this.getRelX()));
         this.dragObj = d3.event.sourceEvent.target;
         if (this.isInverted) {
@@ -477,6 +478,8 @@ var SmartSlider = (function () {
         else {
             this.dragStartXBar = parseInt(this.bar0.attr('x'));
             this.currentBarLength = parseInt(this.bar0.attr('width'));
+            console.log("Start of bar: " + this.dragStartXBar)
+            console.log("Width of bar: " + this.currentBarLength)
         }
     };
     SmartSlider.prototype.dragMove = function () {

@@ -174,7 +174,7 @@ class RangeSlider {
         this.dragObj = d3.event.sourceEvent.target;
         if (this.isInverted) {
             // determine whether we are left of min, in between, or right of max
-            // the startxbar is the left end of whichever segment we are in, 
+            // the startxbar is the left end of whichever segment we are in,
             // and the barlength is same
             var minPos: number = parseInt(this.circleMin.attr('cx'));
             var maxPos: number = parseInt(this.circleMax.attr('cx'));
@@ -240,7 +240,7 @@ class RangeSlider {
 
 
     set(min: number, max: number) {
-        // seems like this would make sense, 
+        // seems like this would make sense,
         // this.min = min;
         // this.max = max;
         this.circleMin.attr("cx", this.valueRange.invert(min));

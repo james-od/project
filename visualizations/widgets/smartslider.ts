@@ -152,7 +152,7 @@ class SmartSlider {
         }
 
 
-            
+
         this.circleMin = this.g.append("circle")
             .attr("id", "sliderKnobMin")
             .attr("r", this.RADIUS_HANDLE)
@@ -168,14 +168,14 @@ class SmartSlider {
             .attr("cy", this.TOP + this.BAR_WIDTH)
             .attr("fill", "#777")
             .call(this.drag);
-            
+
         // this.circleSingle = this.g
         //     .append('svg:path')
         //     .attr('d', 'M0,0L4,4L4,15L-4,15L-4,4L0,0')
         //     .attr('fill', '#777')
         //     .attr("id", "sliderKnobSingle")
         //     .call(this.drag);
-            
+
     }
 
     dragStartXMouse: number;
@@ -188,7 +188,7 @@ class SmartSlider {
         this.dragObj = d3.event.sourceEvent.target;
         if (this.isInverted) {
             // determine whether we are left of min, in between, or right of max
-            // the startxbar is the left end of whichever segment we are in, 
+            // the startxbar is the left end of whichever segment we are in,
             // and the barlength is same
             var minPos: number = parseInt(this.circleMin.attr('cx'));
             var maxPos: number = parseInt(this.circleMax.attr('cx'));
@@ -258,7 +258,7 @@ class SmartSlider {
 
 
     set(min: number, max: number) {
-        // seems like this would make sense, 
+        // seems like this would make sense,
         // this.min = min;
         // this.max = max;
         this.circleMin.attr("cx", this.valueRange.invert(min));

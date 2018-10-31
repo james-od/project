@@ -48,7 +48,19 @@ for(i=0; i<dgraph.timeArrays.links.length; i++){
     //Dont think this works because it only shows when new nodes are added, not when they're removedi
 }
 
-
+Array.prototype.stanDeviate = function(){
+   var i,j,total = 0, mean = 0, diffSqredArr = [];
+   for(i=0;i<this.length;i+=1){
+       total+=this[i];
+   }
+   mean = total/this.length;
+   for(j=0;j<this.length;j+=1){
+       diffSqredArr.push(Math.pow((this[j]-mean),2));
+   }
+   return (Math.sqrt(diffSqredArr.reduce(function(firstEl, nextEl){
+            return firstEl + nextEl;
+          })/this.length));
+};
 
 var nodeLength = nodes.length;
 var hiddenLabels = [];
@@ -185,7 +197,7 @@ function init() {
         .append('circle')
         .attr('r', function (n) { return getNodeRadius(n); })
         .attr('class', 'nodes')
-        .style('fill', COLOR_DEFAULT_NODE)
+        .style('fill', "#ff8800")
         .on('mouseover', mouseOverNode)
         .on('mouseout', mouseOutNode)
         .on('click', function (d) {
@@ -267,6 +279,29 @@ function getLabelHeight(n) {
 }
 function getNodeRadius(n) {
     return Math.sqrt(n.links().length) * NODE_SIZE + 1;
+}
+function getNodeVolatility(n) {
+    console.log("Calculating volatility")
+    //console.log(n.g.timeArrays.links)
+    //console.log(n.links()._elements)
+    linksAtEachTime = []
+    for(var i=time_start._id; i < time_end._id; i++){
+      count = 0
+      for(var j=0; j<n.links()._elements.length; j++){
+        if( n.g.timeArrays.links[i].indexOf(n.links()._elements[j]) > -1 ){
+          count += 1
+        }
+        linksAtEachTime[i-time_start._id] = count
+      }
+    }
+    if(linksAtEachTime.length > 2){
+      console.log(linksAtEachTime)
+      return linksAtEachTime.stanDeviate();
+    }else{
+      console.log("NO STD")
+      console.log(linksAtEachTime)
+      return 0
+    }
 }
 function updateLabelVisibility() {
     hiddenLabels = [];
@@ -361,14 +396,25 @@ function updateNodes() {
     visualNodes
         .style('fill', function (d) {
         var color;
-        if (d.isHighlighted()) {
+        volatility = getNodeVolatility(d)
+        if(volatility > 2.0){
+          color = "#f13030";
+        }
+        else if(volatility > 1.5){
+          color = "#ff851b"
+        }
+        else if(volatility > 1.0){
+          color = "#ffdc00"
+        }
+        else if (d.isHighlighted()) {
             color = COLOR_HIGHLIGHT;
         }
         else {
             color = networkcube.getPriorityColor(d);
         }
-        if (!color)
-            color = COLOR_DEFAULT_NODE;
+        if (!color){
+            color = "#333333";
+        }
         return color;
     })
         .style('opacity', function (d) {
@@ -393,7 +439,7 @@ function updateNodes() {
             color = networkcube.getPriorityColor(d);
         }
         if (!color)
-            color = COLOR_DEFAULT_NODE;
+            color = "#ff8800";
         return color;
     });
     nodeLabelOutlines

@@ -12799,6 +12799,7 @@ var networkcube;
     networkcube.MESSAGE_HIGHLIGHT = 'highlight';
     networkcube.MESSAGE_SELECTION = 'selection';
     networkcube.MESSAGE_TIME_RANGE = 'timeRange';
+    networkcube.MESSAGE_MEASURE_CHANGE = 'measureChange'
     networkcube.MESSAGE_SELECTION_CREATE = 'createSelection';
     networkcube.MESSAGE_SELECTION_DELETE = 'deleteSelection';
     networkcube.MESSAGE_SELECTION_SET_CURRENT = 'setCurrentSelectionId';
@@ -12812,6 +12813,7 @@ var networkcube;
         networkcube.MESSAGE_HIGHLIGHT,
         networkcube.MESSAGE_SELECTION,
         networkcube.MESSAGE_TIME_RANGE,
+        networkcube.MESSAGE_MEASURE_CHANGE,
         networkcube.MESSAGE_SELECTION_CREATE,
         networkcube.MESSAGE_SELECTION_DELETE,
         networkcube.MESSAGE_SELECTION_SET_CURRENT,
@@ -12831,7 +12833,10 @@ var networkcube;
     var previousMessageId = -1;
     function addEventListener(messageType, handler) {
         console.log('>>> addEventListener', messageType);
+        console.log(messageHandler)
         messageHandler[messageType] = handler;
+        this.thingy = 'aaaaa'
+        console.log(messageHandler)
     }
     networkcube.addEventListener = addEventListener;
     function setDefaultEventListener(handler) {
@@ -12902,6 +12907,19 @@ var networkcube;
         return SelectionMessage;
     })(Message);
     networkcube.SelectionMessage = SelectionMessage;
+    function measureChange() {
+        var m = new MeasureChangeMessage("hallo");
+        processMessage(m);
+    }
+    networkcube.measureChange = measureChange;
+    var MeasureChangeMessage = (function (_super) {
+        __extends(MeasureChangeMessage, _super);
+        function MeasureChangeMessage(words) {
+            _super.call(this, networkcube.MESSAGE_MEASURE_CHANGE);
+        }
+        return MeasureChangeMessage;
+    })(Message);
+    networkcube.MeasureChangeMessage = MeasureChangeMessage;
     function timeRange(startUnix, endUnix, single, propagate) {
         var m = new TimeRangeMessage(startUnix, endUnix);
         if (propagate == undefined)
@@ -13052,6 +13070,9 @@ var networkcube;
         if (MESSENGER_PROPAGATE) {
             localStorage[MESSAGE_KEY] = JSON.stringify(message, function (k, v) { return networkcube.dgraphReplacer(k, v); });
         }
+        else{
+          console.log("distributing")
+        }
     }
     networkcube.distributeMessage = distributeMessage;
     function receiveMessage() {
@@ -13067,6 +13088,7 @@ var networkcube;
         processMessage(m);
     }
     function processMessage(m) {
+
         var graph = networkcube.getDynamicGraph();
         if (messageHandler[m.type]) {
             if (m.type == networkcube.MESSAGE_HIGHLIGHT) {
@@ -13078,6 +13100,9 @@ var networkcube;
                 graph.selection(m3.action, m3.idCompound, m3.selectionId);
             }
             else if (m.type == networkcube.MESSAGE_TIME_RANGE) {
+            }
+            else if (m.type == networkcube.MESSAGE_MEASURE_CHANGE){
+              console.log("measure change check")
             }
             else if (m.type == networkcube.MESSAGE_SELECTION_SET_COLORING_VISIBILITY) {
                 var m4 = m;
@@ -13102,6 +13127,7 @@ var networkcube;
             }
             else if (m.type == networkcube.MESSAGE_SELECTION_FILTER) {
                 var m6 = m;
+                console.log("filtering graph")
                 graph.filterSelection(m6.selectionId, m6.filter);
             }
             else if (m.type == networkcube.MESSAGE_SELECTION_CREATE) {
@@ -13128,7 +13154,16 @@ var networkcube;
         }
     }
     function callHandler(message) {
+        console.log("call handler")
+        if(message.type == 'measureChange'){
+          console.log("deal with it here")
+          console.log(window.frames.postMessage('hello', '*'))
+        }
         if (messageHandler[message.type] && messageHandler[message.type] != undefined) {
+            console.log("handling")
+            console.log(messageHandler)
+            console.log(message.type)
+            console.log(message)
             messageHandler[message.type](message);
         }
     }
@@ -13317,6 +13352,12 @@ var networkcube;
         }
         return iframe;
     }
+    function updateActiveMeasures(measure){
+      console.log("change")
+      console.log(measure)
+    }
+    networkcube.updateActiveMeasures = updateActiveMeasures;
+
     networkcube.createVisualizationIFrame = createVisualizationIFrame;
     function openView(session, visUri, dataname, tab) {
         var url = visUri + '?session=' + session + '&datasetName=' + dataname;

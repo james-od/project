@@ -114,6 +114,7 @@ if (dgraph.times().size() > 1) {
     var timeSlider = new TimeSlider(dgraph, width - 50);
     timeSlider.appendTo(timeSvg);
     networkcube.addEventListener('timeRange', timeChangedHandler);
+    networkcube.addEventListener('measureChange', measureChangedHandler);
 }
 $('#visDiv').append('<svg id="visSvg" width="' + (width - 20) + '" height="' + (height - 20) + '"></svg>');
 var mouseStart;
@@ -280,8 +281,12 @@ function getLabelHeight(n) {
 function getNodeRadius(n) {
     return Math.sqrt(n.links().length) * NODE_SIZE + 1;
 }
+
+
 function getNodeVolatility(n) {
     console.log("Calculating volatility")
+    console.log(window.document)
+
     //console.log(n.g.timeArrays.links)
     //console.log(n.links()._elements)
     linksAtEachTime = []
@@ -364,6 +369,11 @@ function mouseOverNode(n) {
 function mouseOutNode(n) {
     networkcube.highlight('reset');
 }
+
+function measureChangedHandler(m) {
+    console.log("Measure changed handler yay")
+}
+
 function timeChangedHandler(m) {
     console.log("Time changed")
     time_start = times[0];
@@ -452,7 +462,7 @@ function updateNodes() {
 
 function updateLinks() {
     inEachTimeRange = {}
-    console.log("updating links")
+    console.log("updating links3")
     visualLinks
         .style('stroke', function (d) {
         var color = networkcube.getPriorityColor(d);
@@ -553,9 +563,16 @@ function stretchVector(vec, finalLength) {
     return vec;
 }
 
+window.onmessage = function(e){
+    if (e.data == 'hello') {
+        alert('It works!');
+    }
+};
+
 $(document).on("keypress", function (e) {
     console.log(e.which);
     if(e.which == 103){
+        console.log(networkcube)
         showEdgesGraph()
     }
     if(e.which == 104){
@@ -651,6 +668,7 @@ function calculateDensity(edges, nodes){
 }
 
 function showDensityGraph(){
+    console.log("show DG")
     //clearCanvas()
     $('#visDiv').append('<div id=densityGraph><text id=graphTitle>Density over time</text><canvas id=myCanvas></canvas></div>');
     var canvas = document.getElementById("myCanvas");

@@ -45,11 +45,18 @@ function updateLists() {
         .text(function (d) { return d.name + ' (' + d.elementIds.length + ')'; });
 }
 
+function measureCheckboxChange(id){
+  console.log("dooot")
+  networkcube.updateActiveMeasures(id)
+  networkcube.measureChange();
+}
+
+
 function updateMeasureList() {
     var measures = ['Connected Nodes', 'Edges', 'Clusters', 'Density', 'Connected Components', 'Diameter', 'Centrality', 'Volatility']
     var title = d3.select('#title_measure');
     title.html('Measure Selections' + ' (' + measures.length + ')');
-    
+
     d3.select('#div_measure')
         .selectAll('.selectionDiv_measure')
         .remove();
@@ -84,6 +91,8 @@ function updateMeasureList() {
         .attr('y', 0)
         .attr('width', RECT_SIZE)
         .attr('height', RECT_SIZE)
+        .attr('id', function (d) { return "checkbox-" + d.toLowerCase().replace(/\s/g, ''); })
+        .attr('onclick', "measureCheckboxChange(this.id)")
         .style('fill', function (d) { return "red"; });
 /*
         .attr('font-family', 'Helvetica')

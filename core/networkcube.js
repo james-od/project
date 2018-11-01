@@ -12909,7 +12909,9 @@ var networkcube;
     networkcube.SelectionMessage = SelectionMessage;
     function measureChange() {
         var m = new MeasureChangeMessage("hallo");
-        processMessage(m);
+        console.log("measure change - ")
+        console.log(messageHandler)
+        distributeMessage(m);
     }
     networkcube.measureChange = measureChange;
     var MeasureChangeMessage = (function (_super) {
@@ -12989,6 +12991,8 @@ var networkcube;
     })(Message);
     networkcube.ShowSelectionColorMessage = ShowSelectionColorMessage;
     function filterSelection(selection, filter) {
+        console.log("filter selection - ")
+        console.log(messageHandler)
         var m = new FilterSelectionMessage(selection, filter);
         distributeMessage(m);
     }
@@ -13128,6 +13132,8 @@ var networkcube;
             else if (m.type == networkcube.MESSAGE_SELECTION_FILTER) {
                 var m6 = m;
                 console.log("filtering graph")
+                console.log(messageHandler)
+                console.log(m)
                 graph.filterSelection(m6.selectionId, m6.filter);
             }
             else if (m.type == networkcube.MESSAGE_SELECTION_CREATE) {

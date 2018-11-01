@@ -92,8 +92,8 @@ function updateMeasureList() {
         .attr('width', RECT_SIZE)
         .attr('height', RECT_SIZE)
         .attr('id', function (d) { return "checkbox-" + d.toLowerCase().replace(/\s/g, ''); })
-        .on('click', function () {
-          networkcube.measureChange();
+        .on('click', function (d) {
+          networkcube.measureChange(d);
         })
         .style('fill', function (d) { return "red"; });
 /*

@@ -12907,17 +12907,18 @@ var networkcube;
         return SelectionMessage;
     })(Message);
     networkcube.SelectionMessage = SelectionMessage;
-    function measureChange() {
-        var m = new MeasureChangeMessage("hallo");
+    function measureChange(measure) {
+        var m = new MeasureChangeMessage(measure);
         console.log("measure change - ")
-        console.log(messageHandler)
+        console.log(measure)
         distributeMessage(m);
     }
     networkcube.measureChange = measureChange;
     var MeasureChangeMessage = (function (_super) {
         __extends(MeasureChangeMessage, _super);
-        function MeasureChangeMessage(words) {
+        function MeasureChangeMessage(measure) {
             _super.call(this, networkcube.MESSAGE_MEASURE_CHANGE);
+            this.measure = measure;
         }
         return MeasureChangeMessage;
     })(Message);
@@ -13163,7 +13164,8 @@ var networkcube;
         console.log("call handler")
         if(message.type == 'measureChange'){
           console.log("deal with it here")
-          console.log(window.frames.postMessage('hello', '*'))
+          console.log(message)
+          window.frames.postMessage(message)
         }
         if (messageHandler[message.type] && messageHandler[message.type] != undefined) {
             console.log("handling")

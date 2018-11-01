@@ -24,6 +24,7 @@ var times = dgraph.times().toArray();
 var time_start = times[0];
 var time_end = times[times.length - 1];
 var nodes = dgraph.nodes().toArray();
+var volatilityMeasureEnabled = false;
 
 var nodesOrderedByDegree = dgraph.nodes().toArray().sort(function (n1, n2) { return n2.neighbors().length - n1.neighbors().length; });
 var nodePairs = dgraph.nodePairs();
@@ -406,15 +407,17 @@ function updateNodes() {
     visualNodes
         .style('fill', function (d) {
         var color;
-        volatility = getNodeVolatility(d)
-        if(volatility > 2.0){
-          color = "#f13030";
-        }
-        else if(volatility > 1.5){
-          color = "#ff851b"
-        }
-        else if(volatility > 1.0){
-          color = "#ffdc00"
+        if(volatilityMeasureEnabled){
+            volatility = getNodeVolatility(d)
+            if(volatility > 2.0){
+              color = "#f13030";
+            }
+            else if(volatility > 1.5){
+              color = "#ff851b"
+            }
+            else if(volatility > 1.0){
+              color = "#ffdc00"
+            }
         }
         else if (d.isHighlighted()) {
             color = COLOR_HIGHLIGHT;
@@ -563,10 +566,32 @@ function stretchVector(vec, finalLength) {
     return vec;
 }
 
+activeMeasures = []
 window.onmessage = function(e){
-    if (e.data == 'hello') {
-        alert('It works!');
+//    alert(JSON.stringify(e.data))
+    if(activeMeasures.indexOf(e.data.measure) > -1){
+        activeMeasures.splice(activeMeasures.indexOf(e.data.measure), 1)
+        if(e.data.measure = "Volatility"){
+            volatilityMeasureEnabled = false;
+            updateNodes();
+        }
+    }else{
+        activeMeasures.push(e.data.measure)
     }
+    if(activeMeasures.indexOf("Connected Nodes") > -1){
+        showConnectedNodesGraph()
+    }
+    if(activeMeasures.indexOf("Edges") > -1){
+        showEdgesGraph()
+    }
+    if(activeMeasures.indexOf("Density") > -1){
+        showDensityGraph()
+    }
+    if(activeMeasures.indexOf("Volatility") > -1){
+        volatilityMeasureEnabled = true;
+        updateNodes();
+    }
+    alert(activeMeasures)
 };
 
 $(document).on("keypress", function (e) {

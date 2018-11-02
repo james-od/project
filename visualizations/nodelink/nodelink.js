@@ -606,8 +606,14 @@ $(document).on("keypress", function (e) {
     if(e.which == 106){
       showDensityGraph()
     }
+    if(e.which == 107){
+      volatilityMeasureEnabled = true;
+      updateNodes();
+    }
     if(e.which == 99){
         clearCanvas()
+        volatilityMeasureEnabled = false;
+        updateNodes();
     }
 });
 

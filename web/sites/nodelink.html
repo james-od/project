@@ -10,7 +10,7 @@
 
 <!-- VS: Call to trace.js -->
 <script type="text/javascript" src="../traces/trace.js"></script>
-    
+
 <script src="../../core/networkcube.js"></script>
 <script src="../classes/vistorian.js"></script>
 
@@ -26,25 +26,27 @@
             <td width="220px">
                 <div id="logoFrame"></div>
                 <div width="220" id="bookmarkFrame"></div>
-            </td>    
+            </td>
             <td width="220px">
-                <div width="220" id="visFrame"> 
-            </td>    
+                <div width="220" id="visFrame">
+                  <div width="220" id="databarFrame">
+                </div>
+            </td>
         </tr>
     </table>
       <div id="footer">
                 <a class="footer" href="mailto:networkcube@microsoft.com" target="_top">Contact Us</a> |
                 <a class="footer" href="https://go.microsoft.com/fwlink/?LinkId=521839" title="privacy">Privacy & Cookies</a>   |
                 <a class="footer" href="https://go.microsoft.com/fwlink/?LinkID=760869" title="terms of use">Terms Of Use</a>   |
-                <a class="footer" href="http://go.microsoft.com/fwlink/?LinkId=506942" title="trademarks">Trademarks</a>   
+                <a class="footer" href="http://go.microsoft.com/fwlink/?LinkId=506942" title="trademarks">Trademarks</a>
                 © 2016 Microsoft <img src="../logos/logo-microsoft.png" height="20px"> © 2016 INRIA <img src="../logos/logo-inria.png" height="20px">
     </div>
 	<script>
 
         SERVER = location.protocol + '//'+ window.location.hostname +  '' + window.location.pathname + '/';
         SERVER = SERVER.split('web/')[0]
-  
-       
+
+
         $( document ).ready(function() {
             var width = window.innerWidth -30;
             width_col1 = 220;
@@ -56,17 +58,24 @@
             params['datasetName'] = params['datasetName'].replace(/___/g, ' ');
             console.log(params)
             networkcube.createVisualizationIFrame(
-                'bookmarkFrame', 
+                'bookmarkFrame',
                 SERVER + 'visualizations/bookmarkbrowser/index.html',
-                params['session'], params['datasetName'], 
+                params['session'], params['datasetName'],
                 width_col1, height);
-            
+
+
             networkcube.createVisualizationIFrame(
-                'visFrame', 
+                'visFrame',
                 SERVER + 'visualizations/nodelink/index.html',
-                params['session'], params['datasetName'], 
+                params['session'], params['datasetName'],
                 width_col2, height);
-            
+
+            networkcube.createVisualizationIFrame(
+                'databarFrame',
+                SERVER + 'visualizations/databar/index.html',
+                params['session'], params['datasetName'],
+                500, 150);
+
             vistorian.setHeader('logoFrame', params['datasetName']);
 
         });

@@ -1,23 +1,232 @@
 <!DOCTYPE html>
-<html>
-<head>
-<link rel="stylesheet" type="text/css" href="../../styles.css">
-<link rel="stylesheet" type="text/css" href="styles.css">
-
-<!-- VS: Call to trace.js -->
-<script type="text/javascript" src="../../web/traces/trace.js"></script>
-<script src="../../core/lib/jquery.js"></script>
-<script src="../../core/networkcube.js"></script>
-<script src="../nodelink/lib/d3.js"></script>
-<script src="../nodelink/lib/cola.js"></script>
-<script src="../widgets/widgets.js"></script>
-<script src="databar.js"></script>
-
-<link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
-</head>
+<meta charset="utf-8">
 <body>
-  <div>
-      <div id="visDiv"></div>
-  </div>
-</body>
-</html>
+<style>
+
+path {
+  fill: none;
+  stroke: #000;
+  stroke-width: 3px;
+}
+
+circle {
+  fill: steelblue;
+  stroke: #fff;
+  stroke-width: 3px;
+}
+
+body {
+    padding: 20px;
+}
+.slides {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.slide {
+    color: #FFF;
+}
+
+.slide-placeholder {
+    background: #DADADA;
+    position: relative;
+}
+.slide-placeholder:after {
+    content: " ";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 15px;
+}
+
+</style>
+<script src="../nodelink/lib/d3.js"></script>
+<script src="../../core/networkcube.js"></script>
+<script src="../../web/lib/jquery.js"></script>
+<script src="../../visualizations/3dbrain/lib/jquery-ui-1.10.2.js"></script>
+<ul class="slides"></ul>
+
+<script>
+$(".slides").sortable({
+     placeholder: 'slide-placeholder',
+    axis: "y",
+    revert: 150,
+    start: function(e, ui){
+
+        placeholderHeight = ui.item.outerHeight();
+        ui.placeholder.height(placeholderHeight + 15);
+        $('<div class="slide-placeholder-animator" data-height="' + placeholderHeight + '"></div>').insertAfter(ui.placeholder);
+
+    },
+    change: function(event, ui) {
+
+        ui.placeholder.stop().height(0).animate({
+            height: ui.item.outerHeight() + 15
+        }, 300);
+
+        placeholderAnimatorHeight = parseInt($(".slide-placeholder-animator").attr("data-height"));
+
+        $(".slide-placeholder-animator").stop().height(placeholderAnimatorHeight + 15).animate({
+            height: 0
+        }, 300, function() {
+            $(this).remove();
+            placeholderHeight = ui.item.outerHeight();
+            $('<div class="slide-placeholder-animator" data-height="' + placeholderHeight + '"></div>').insertAfter(ui.placeholder);
+        });
+
+    },
+    stop: function(e, ui) {
+
+        $(".slide-placeholder-animator").remove();
+
+    },
+});
+
+width = window.innerWidth -30
+//height =
+
+function drawLineGraph(points, circleColor, id){
+
+  var svg = d3.select(".slides").append("li").attr("class", "slide").append("svg")
+      .attr("width", width -30)
+      .attr("height", 50);
+
+  var path = svg.append("path")
+      .data([points])
+      .style("stroke", circleColor)
+      .style("fill", circleColor)
+      .style("fill-opacity", 0.8)
+      .attr("d", d3.svg.line()
+      .tension(0) // Catmull–Rom
+      .interpolate("linear"));
+
+  var circle = svg.append("circle")
+      .attr("r", 7)
+      .style("fill", circleColor)
+      .attr("transform", "translate(" + points[0] + ")");
+
+  //var text = svg.append("text").text("hallo")
+
+  return {id: id, path: path, circle: circle}
+}
+
+var dgraph = networkcube.getDynamicGraph();
+nodeSetLengthAtEachPoint = [];
+for(i=0; i<dgraph.timeArrays.links.length; i++){
+    let nodesAtThisPoint = new Set();
+    for(j=0; j<dgraph.timeArrays.links[i].length; j++){
+        nodesAtThisPoint.add( dgraph.linkArrays.source[dgraph.timeArrays.links[i][j]] )
+        nodesAtThisPoint.add( dgraph.linkArrays.target[dgraph.timeArrays.links[i][j]] )
+    }
+    nodeSetLengthAtEachPoint.push(nodesAtThisPoint.size)
+    //this could be useful later to get the connected nodes a each time point
+    //Dont think this works because it only shows when new nodes are added, not when they're removedi
+}
+numberOfLinksAtEachTimeJump = [];
+timesForLinks = dgraph.timeArrays.label;
+for(i=0; i < dgraph.timeArrays.links.length; i++){
+    numberOfLinksAtEachTimeJump.push(dgraph.timeArrays.links[i].length);
+}
+function calculateDensity(edges, nodes){
+  ret = []
+  i = 0
+  while(i < edges.length){
+    ret.push( (edges[i]) / (nodes[i] * (nodes[i] - 1)) )
+    i += 1
+  }
+  return ret
+}
+
+function convertToCoords(x){
+  len = x.length
+  step = Math.ceil(width / len)
+  var max = x.reduce(function(a, b) {
+    return Math.max(a, b);
+  });
+  console.log("YEEER" + x + " " + step + " " + max )
+  ret = []
+  ret.push([0,50])
+  for(i=0; i<len; i++){
+    scaledY = x[i] / max * 50;
+    ret.push([i*step, 50-scaledY])
+  }
+  ret.push([len*step, 50])
+  ret.push([0,50])
+  console.log(ret)
+  return ret
+}
+
+var points3 = convertToCoords(calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint));
+graph3 = drawLineGraph(points3, "green", 3)
+
+var points2 = convertToCoords(numberOfLinksAtEachTimeJump);
+graph2 = drawLineGraph(points2, "blue", 2)
+
+var points1 = convertToCoords(nodeSetLengthAtEachPoint);
+graph1 = drawLineGraph(points1, "red", 1)
+
+allGraphs = [graph1, graph2]
+
+
+//transition();
+
+function approximateXY(line, cursor_prcnt, trueLength){
+  step_size = 1
+  desiredX = cursor_prcnt * width;
+  for(i=0; i<100; i++){
+    pt = line.getPointAtLength(i/100 * line.getTotalLength());
+    if(pt.x > desiredX){
+      console.log("YAY x= " + pt.x + " y= " + pt.y)
+      return pt
+    }
+  }
+  console.log("bork")
+  return -1;
+}
+
+function transition(graph, mouseX) {
+
+  var pathLength = graph.path.node().getTotalLength();
+  //console.log("LENGTH " + pathLength)
+  //console.log("WIDTH " + width)
+  //console.log("HEIGHT " + 50)
+  pathLength = pathLength - (2*50) - width
+  //console.log("TRUE LENGTH " + pathLength)
+  cursor_prcnt = mouseX / width;
+
+  X_ = cursor_prcnt * pathLength;
+  pt = graph.path.node().getPointAtLength(X_);
+
+  //console.log("width " + width)
+  //console.log("cursor_prcnt " + cursor_prcnt)
+  //console.log("Expected X " + cursor_prcnt * width)
+  approx = approximateXY(graph.path.node(), cursor_prcnt, pathLength)
+  //console.log("Approximated X" + approx)
+  //console.log("Actual X " + pt.x)
+
+  //console.log("id = " + graph.id + " prcnt = " + prcnt + "x = " + pt.x + " y= " + pt.y)
+  if(approx.x && approx.y){
+    graph.circle.attr("transform", function(d) {
+        return "translate(" + approx.x + "," + approx.y + ")"
+    });
+  }
+}
+
+function getMousePos(svg, evt) {
+  return {
+    x: evt.clientX,
+    y: evt.clientY
+  };
+}
+
+document.addEventListener('mousemove', function(evt) {
+  var mousePos = getMousePos(document, evt);
+  transition(graph1, mousePos.x);
+  transition(graph2, mousePos.x);
+  transition(graph3, mousePos.x);
+}, false);
+
+
+
+</script>

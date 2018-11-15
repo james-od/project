@@ -6,7 +6,8 @@
 
 <!-- VS: Call to trace.js -->
 <script type="text/javascript" src="../../web/traces/trace.js"></script>
-	
+
+
 <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
 </head>
 <title>Node link diagram</title>
@@ -17,13 +18,14 @@
         <div id="menuDiv">
 			<!-- VS: Clicks on Manual -->
             <a class="manual-button" target="_blank" href="https://github.com/networkcube/networkcube/wiki/Visualization-Manual#node-link-visualization-nodelink" onclick="trace.event('help', 'ts_nodelinkVisManual', 'CCC', 'DDD')"> Manual</a>
-			
+
 			<!-- Original code -->
 			<!-- <a class="manual-button" target="_blank" href="https://github.com/networkcube/networkcube/wiki/Visualization-Manual#node-link-visualization-nodelink" onclick="trace.event('help', 'ts_NLVisManual', 'CCC', 'DDD')"> Manual</a> -->
-			
+
             <!--<input type="button" class="exportPNG-button" value="Export PNG" onclick="exportPNG()"/>-->
         </div>
         <div id="timelineDiv"></div>
+				<div id="databarFrame"></div>
         <div id="visDiv">
         </div>
     </div>
@@ -33,5 +35,33 @@
     <script src="lib/cola.js"></script>
     <script src="../widgets/widgets.js"></script>
     <script src="nodelink.js"></script>
+		<script src="../../web/classes/vistorian.js"></script>
+
+
+		<script>
+		SERVER = location.protocol + '//'+ window.location.hostname +  '' + window.location.pathname + '/';
+		SERVER = SERVER.split('web/')[0]
+
+		$( document ).ready(function() {
+				var width = window.innerWidth -30;
+				width_col1 = 220;
+				width_col2 = (width - width_col1);
+
+				var height = window.innerHeight - 50
+
+				var params = networkcube.getUrlVars();
+				params['datasetName'] = params['datasetName'].replace(/___/g, ' ');
+				console.log(params)
+				console.log("server: " + SERVER)
+				path = SERVER.replace("nodelink/index.html/", "databar/index.html");
+
+				networkcube.createVisualizationIFrame(
+						'databarFrame',
+						path,
+						0, "demo_scientists",
+						width, 250);
+
+		});
+		</script>
 </body>
 </html>

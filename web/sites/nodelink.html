@@ -28,9 +28,7 @@
                 <div width="220" id="bookmarkFrame"></div>
             </td>
             <td width="220px">
-                <div width="220" id="visFrame">
-                  <div width="220" id="databarFrame">
-                </div>
+                <div width="220" id="visFrame"></div>
             </td>
         </tr>
     </table>
@@ -69,12 +67,6 @@
                 SERVER + 'visualizations/nodelink/index.html',
                 params['session'], params['datasetName'],
                 width_col2, height);
-
-            networkcube.createVisualizationIFrame(
-                'databarFrame',
-                SERVER + 'visualizations/databar/index.html',
-                params['session'], params['datasetName'],
-                500, 150);
 
             vistorian.setHeader('logoFrame', params['datasetName']);
 

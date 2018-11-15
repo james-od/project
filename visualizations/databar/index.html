@@ -20,7 +20,7 @@ body {
 }
 .slides {
     list-style: none;
-    margin: 0;
+    margin: -20px;
     padding: 0;
 }
 .slide {
@@ -86,11 +86,12 @@ $(".slides").sortable({
 width = window.innerWidth -30
 //height =
 
-function drawLineGraph(points, circleColor, id){
+function drawLineGraph(points, circleColor, id, title){
 
   var svg = d3.select(".slides").append("li").attr("class", "slide").append("svg")
       .attr("width", width -30)
       .attr("height", 50);
+
 
   var path = svg.append("path")
       .data([points])
@@ -101,17 +102,46 @@ function drawLineGraph(points, circleColor, id){
       .tension(0) // Catmull–Rom
       .interpolate("linear"));
 
-  var circle = svg.append("circle")
+  var titleText = svg.append("text")
+    .attr("fill", "black")
+    .style("text-anchor", "middle")
+    .text(title)
+    .attr("transform", "translate( 25, 25 )");
+
+  var circleGroup = svg.append("g")
+
+  var circle = circleGroup.append("circle")
       .attr("r", 7)
       .style("fill", circleColor)
       .attr("transform", "translate(" + points[0] + ")");
 
+  var circle2 = circleGroup.append("text")
+  .text("HALLO")
+  .style("color", "black")
+  .attr({
+    "text-anchor": "middle",
+    "font-size": 20
+  });
+
+
+
   //var text = svg.append("text").text("hallo")
 
-  return {id: id, path: path, circle: circle}
+  return {id: id, path: path, circle: circleGroup}
 }
 
 var dgraph = networkcube.getDynamicGraph();
+
+var labels = dgraph.timeArrays.label
+int_dates = labels.map(Date.parse)
+gaps_in_days = [0]
+
+for(i=0;i<int_dates.length-1;i++){
+  gap = Math.round((int_dates[i+1] - int_dates[i])/86400000) //days
+  gaps_in_days.push(gap)
+}
+console.log(gaps_in_days)
+
 nodeSetLengthAtEachPoint = [];
 for(i=0; i<dgraph.timeArrays.links.length; i++){
     let nodesAtThisPoint = new Set();
@@ -123,6 +153,22 @@ for(i=0; i<dgraph.timeArrays.links.length; i++){
     //this could be useful later to get the connected nodes a each time point
     //Dont think this works because it only shows when new nodes are added, not when they're removedi
 }
+console.log(nodeSetLengthAtEachPoint)
+
+var sum = gaps_in_days.reduce(function(a, b) { return a + b; }, 0);
+step_size = gaps_in_days.length / sum
+
+const normalised_gaps_in_days = gaps_in_days.map(x => x * step_size);
+console.log(normalised_gaps_in_days)
+normalised_gaps_X_coords = []
+sumSoFar = 0
+for(i=0;i<normalised_gaps_in_days.length;i++){
+  sumSoFar += normalised_gaps_in_days[i]
+  normalised_gaps_X_coords.push(sumSoFar)
+}
+console.log(normalised_gaps_X_coords)
+
+
 numberOfLinksAtEachTimeJump = [];
 timesForLinks = dgraph.timeArrays.label;
 for(i=0; i < dgraph.timeArrays.links.length; i++){
@@ -144,27 +190,28 @@ function convertToCoords(x){
   var max = x.reduce(function(a, b) {
     return Math.max(a, b);
   });
-  console.log("YEEER" + x + " " + step + " " + max )
+  //console.log("YEEER" + x + " " + step + " " + max )
   ret = []
   ret.push([0,50])
-  for(i=0; i<len; i++){
+  for(i=0; i<normalised_gaps_X_coords.length; i++){
     scaledY = x[i] / max * 50;
-    ret.push([i*step, 50-scaledY])
+    ret.push([normalised_gaps_X_coords[i]*step, 50-scaledY])
+    console.log("pushing", [normalised_gaps_X_coords[i]*step, 50-scaledY])
   }
   ret.push([len*step, 50])
   ret.push([0,50])
-  console.log(ret)
+  //console.log(ret)
   return ret
 }
 
 var points3 = convertToCoords(calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint));
-graph3 = drawLineGraph(points3, "green", 3)
+graph3 = drawLineGraph(points3, "green", 3, "Density")
 
 var points2 = convertToCoords(numberOfLinksAtEachTimeJump);
-graph2 = drawLineGraph(points2, "blue", 2)
+graph2 = drawLineGraph(points2, "blue", 2, "Links")
 
 var points1 = convertToCoords(nodeSetLengthAtEachPoint);
-graph1 = drawLineGraph(points1, "red", 1)
+graph1 = drawLineGraph(points1, "red", 1, "Nodes")
 
 allGraphs = [graph1, graph2]
 
@@ -177,11 +224,10 @@ function approximateXY(line, cursor_prcnt, trueLength){
   for(i=0; i<100; i++){
     pt = line.getPointAtLength(i/100 * line.getTotalLength());
     if(pt.x > desiredX){
-      console.log("YAY x= " + pt.x + " y= " + pt.y)
+      //console.log("YAY x= " + pt.x + " y= " + pt.y)
       return pt
     }
   }
-  console.log("bork")
   return -1;
 }
 
@@ -207,7 +253,11 @@ function transition(graph, mouseX) {
 
   //console.log("id = " + graph.id + " prcnt = " + prcnt + "x = " + pt.x + " y= " + pt.y)
   if(approx.x && approx.y){
-    graph.circle.attr("transform", function(d) {
+    graph.circle.selectAll("circle").attr("transform", function(d) {
+        return "translate(" + approx.x + "," + approx.y + ")"
+    });
+    graph.circle.selectAll("text").attr("transform", function(d) {
+        graph.circle.selectAll("text").text("" + Math.round(50 - approx.y))
         return "translate(" + approx.x + "," + approx.y + ")"
     });
   }

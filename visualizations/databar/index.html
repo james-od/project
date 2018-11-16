@@ -45,6 +45,7 @@ body {
 <script src="../../core/networkcube.js"></script>
 <script src="../../web/lib/jquery.js"></script>
 <script src="../../visualizations/3dbrain/lib/jquery-ui-1.10.2.js"></script>
+<script src="lib/hcluster.min.js"></script>
 <ul class="slides"></ul>
 
 <script>
@@ -101,6 +102,12 @@ function drawLineGraph(points, circleColor, id, title){
       .attr("d", d3.svg.line()
       .tension(0) // Catmull–Rom
       .interpolate("linear"));
+
+  svg.selectAll(".point")
+    .data(points)
+    .enter().append("circle")
+    .attr("r", 1)
+    .attr("transform", function(d) { return "translate(" + d + ")"; });
 
   var titleText = svg.append("text")
     .attr("fill", "black")
@@ -184,6 +191,113 @@ function calculateDensity(edges, nodes){
   return ret
 }
 
+function getStateOfGrapghAtT(t){
+  edges = dgraph.timeArrays.links[t]
+  ret_edges = []
+  ret_nodes = new Set([])
+  for(i=0;i<edges.length;i++){
+    edge = edges[i]
+    source = dgraph.linkArrays.source[edge]
+    target = dgraph.linkArrays.target[edge]
+    ret_edges.push([source, target])
+    ret_nodes.add(source)
+    ret_nodes.add(target)
+    //console.log("Edge "+edges[i] + " from " + source + " to " + target)
+  }
+  ret_nodes = Array.from(ret_nodes);
+  return {"edges": ret_edges, "nodes": ret_nodes}
+}
+
+class Graph {
+   constructor() {
+      this.edges = {};
+      this.nodes = [];
+   }
+
+   addNode(node) {
+      this.nodes.push(node);
+      this.edges[node] = [];
+   }
+
+   addEdge(node1, node2, weight = 1) {
+      this.edges[node1].push({ node: node2, weight: weight });
+      this.edges[node2].push({ node: node1, weight: weight });
+   }
+
+   floydWarshallAlgorithm() {
+      let dist = {};
+      let maxSoFar = 0;
+      for (let i = 0; i < this.nodes.length; i++) {
+         dist[this.nodes[i]] = {};
+         // For existing edges assign the dist to be same as weight
+         this.edges[this.nodes[i]].forEach(e => (dist[this.nodes[i]][e.node] = e.weight));
+         this.nodes.forEach(n => {
+            // For all other nodes assign it to infinity
+            if (dist[this.nodes[i]][n] == undefined)
+            dist[this.nodes[i]][n] = Infinity;
+            // For self edge assign dist to be 0
+            if (this.nodes[i] === n) dist[this.nodes[i]][n] = 0;
+         });
+      }
+      this.nodes.forEach(i => {
+         this.nodes.forEach(j => {
+            this.nodes.forEach(k => {
+               // Check if going from i to k then from k to j is better
+               // than directly going from i to j. If yes then update
+               // i to j value to the new value
+               if (dist[i][k] + dist[k][j] < dist[i][j])
+                  dist[i][j] = dist[i][k] + dist[k][j];
+               });
+            });
+         });
+         //Can also return dist for all of them
+         return dist;
+   }
+}
+
+function diameterOfGraphAtT(t){
+  let g = new Graph();
+  graph = getStateOfGrapghAtT(t)
+  edges = graph['edges']
+  nodes = graph['nodes']
+  for(i=0;i<nodes.length;i++){
+    g.addNode(nodes[i])
+  }
+  for(i=0;i<edges.length;i++){
+    g.addEdge(edges[i][0], edges[i][1])
+  }
+  dist = g.floydWarshallAlgorithm()
+  diameter = 0
+  for(var key in dist){
+    val = dist[key]
+    for(var key2 in val){
+      if(val[key2] > diameter && isFinite(val[key2]) ){
+        diameter = val[key2]
+      }
+    }
+  }
+  //console.log(dist)
+  return diameter
+}
+
+allDiameters = []
+for(j=0;j<60;j++){
+  allDiameters.push(diameterOfGraphAtT(j))
+}
+console.log(allDiameters)
+
+function getClusterCounts(){
+  console.log("CLUSTER COUNTS")
+  console.log(dgraph)
+  var colorCluster = hcluster()
+    .distance('euclidean') // support for 'euclidean' and 'angular'
+    .linkage('avg')        // support for 'avg', 'max' and 'min'
+    .verbose(true)         // false by default
+    .posKey('rgbValue')    // 'position' by default
+}
+
+getClusterCounts()
+
 function convertToCoords(x){
   len = x.length
   step = Math.ceil(width / len)
@@ -196,13 +310,17 @@ function convertToCoords(x){
   for(i=0; i<normalised_gaps_X_coords.length; i++){
     scaledY = x[i] / max * 50;
     ret.push([normalised_gaps_X_coords[i]*step, 50-scaledY])
-    console.log("pushing", [normalised_gaps_X_coords[i]*step, 50-scaledY])
+    //console.log("pushing", [normalised_gaps_X_coords[i]*step, 50-scaledY])
   }
   ret.push([len*step, 50])
   ret.push([0,50])
   //console.log(ret)
   return ret
 }
+
+
+var points4 = convertToCoords(allDiameters);
+graph4 = drawLineGraph(points4, "purple", 3, "Diameter")
 
 var points3 = convertToCoords(calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint));
 graph3 = drawLineGraph(points3, "green", 3, "Density")
@@ -275,6 +393,7 @@ document.addEventListener('mousemove', function(evt) {
   transition(graph1, mousePos.x);
   transition(graph2, mousePos.x);
   transition(graph3, mousePos.x);
+  transition(graph4, mousePos.x);
 }, false);
 
 

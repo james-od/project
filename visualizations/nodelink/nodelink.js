@@ -117,6 +117,7 @@ if (dgraph.times().size() > 1) {
     networkcube.addEventListener('timeRange', timeChangedHandler);
     networkcube.addEventListener('measureChange', measureChangedHandler);
 }
+
 $('#visDiv').append('<svg id="visSvg" width="' + (width - 20) + '" height="' + (height - 20) + '"></svg>');
 var mouseStart;
 var panOffsetLocal = [0, 0];
@@ -466,8 +467,7 @@ function updateNodes() {
 function updateLinks() {
     inEachTimeRange = {}
     console.log("updating links3")
-    visualLinks
-        .style('stroke', function (d) {
+    visualLinks.style('stroke', function (d) {
         var color = networkcube.getPriorityColor(d);
         if (!color)
             color = COLOR_DEFAULT_LINK;
@@ -733,6 +733,10 @@ function clearCanvas(){
     const context = canvas.getContext('2d');
     context.clearRect(0, 0, canvas.width, canvas.height);
   }
+}
+
+function changeTime(){
+  networkcube.timeRange(-128436529, 66957942857.14288, 1, true)
 }
 
 function showMessage(message) {

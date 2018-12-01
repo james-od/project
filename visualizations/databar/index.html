@@ -39,12 +39,18 @@ body {
     right: 0;
     height: 15px;
 }
+line {
+  stroke: #000;
+  stroke-width: 1px;
+  opacity: 0.05;
+}
 
 </style>
 <script src="../nodelink/lib/d3.js"></script>
 <script src="../../core/networkcube.js"></script>
 <script src="../../web/lib/jquery.js"></script>
 <script src="../../visualizations/3dbrain/lib/jquery-ui-1.10.2.js"></script>
+<script src="../../visualizations/nodelink/nodelink.js"></script>
 <script src="lib/hcluster.min.js"></script>
 <ul class="slides"></ul>
 
@@ -106,30 +112,44 @@ function drawLineGraph(points, circleColor, id, title){
   svg.selectAll(".point")
     .data(points)
     .enter().append("circle")
-    .attr("r", 1)
+    .attr("r", 2)
+    .style("fill", circleColor)
+    .style("stroke", circleColor)
     .attr("transform", function(d) { return "translate(" + d + ")"; });
+
+  svg.selectAll(".line")
+    .data(points)
+    .enter().append("line")
+    .attr("x1", function(d) { return d[0] })
+    .attr("x2", function(d) { return d[0] })
+    .attr("y1", 0)
+    .attr("y2", 50)
+    .attr("stroke-dasharray", function(d) { return (d + 1) + ",5"});
 
   var titleText = svg.append("text")
     .attr("fill", "black")
     .style("text-anchor", "middle")
-    .text(title)
-    .attr("transform", "translate( 25, 25 )");
+    .text(title + " ".repeat(8-title.length) ) //trying to get titles to align
+    .style("font-family", "Helvetica")
+    .attr("transform", "translate( 40, 20 )");
 
   var circleGroup = svg.append("g")
 
   var circle = circleGroup.append("circle")
       .attr("r", 7)
       .style("fill", circleColor)
+      .style("stroke", circleColor)
+      .style("opacity", 0.5)
       .attr("transform", "translate(" + points[0] + ")");
 
   var circle2 = circleGroup.append("text")
   .text("HALLO")
   .style("color", "black")
+  .style("font-family", "Helvetica")
   .attr({
     "text-anchor": "middle",
     "font-size": 20
   });
-
 
 
   //var text = svg.append("text").text("hallo")
@@ -336,20 +356,22 @@ allGraphs = [graph1, graph2]
 
 //transition();
 
-function approximateXY(line, cursor_prcnt, trueLength){
-  step_size = 1
-  desiredX = cursor_prcnt * width;
-  for(i=0; i<100; i++){
-    pt = line.getPointAtLength(i/100 * line.getTotalLength());
-    if(pt.x > desiredX){
-      //console.log("YAY x= " + pt.x + " y= " + pt.y)
-      return pt
+function approximateXY(points, line, mouseX, trueLength){
+  closest_point_to_cursor = points[0]
+  var i;
+  for(i=0; i<points.length; i++){
+    if(Math.abs(mouseX - points[i][0]) < Math.abs(mouseX - closest_point_to_cursor[0])){
+      closest_point_to_cursor = points[i]
     }
   }
-  return -1;
+  if(closest_point_to_cursor[0] && closest_point_to_cursor[1]){
+    return {x: closest_point_to_cursor[0], y: closest_point_to_cursor[1]}
+  }else{
+    return {x: 0, y: 0}
+  }
 }
 
-function transition(graph, mouseX) {
+function transition(points, graph, mouseX) {
 
   var pathLength = graph.path.node().getTotalLength();
   //console.log("LENGTH " + pathLength)
@@ -365,7 +387,7 @@ function transition(graph, mouseX) {
   //console.log("width " + width)
   //console.log("cursor_prcnt " + cursor_prcnt)
   //console.log("Expected X " + cursor_prcnt * width)
-  approx = approximateXY(graph.path.node(), cursor_prcnt, pathLength)
+  approx = approximateXY(points, graph.path.node(), mouseX, pathLength)
   //console.log("Approximated X" + approx)
   //console.log("Actual X " + pt.x)
 
@@ -390,10 +412,16 @@ function getMousePos(svg, evt) {
 
 document.addEventListener('mousemove', function(evt) {
   var mousePos = getMousePos(document, evt);
-  transition(graph1, mousePos.x);
-  transition(graph2, mousePos.x);
-  transition(graph3, mousePos.x);
-  transition(graph4, mousePos.x);
+  transition(points1, graph1, mousePos.x);
+  transition(points2, graph2, mousePos.x);
+  transition(points3, graph3, mousePos.x);
+  transition(points4, graph4, mousePos.x);
+}, false);
+
+document.addEventListener('click', function(evt) {
+  console.log(event.clientX)
+  console.log(event.clientY)
+  //console.log(parent.frames['visDiv'])
 }, false);
 
 

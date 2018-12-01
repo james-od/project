@@ -12924,6 +12924,10 @@ var networkcube;
     })(Message);
     networkcube.MeasureChangeMessage = MeasureChangeMessage;
     function timeRange(startUnix, endUnix, single, propagate) {
+        console.log("changing timerange")
+        console.log("startUnix " + startUnix)
+        console.log("endUnix " + endUnix)
+        console.log("single " + single)
         var m = new TimeRangeMessage(startUnix, endUnix);
         if (propagate == undefined)
             propagate = false;
@@ -14549,4 +14553,5 @@ var geometry;
     }
     geometry.setLength = setLength;
 })(geometry || (geometry = {}));
+
 //# sourceMappingURL=networkcube.js.map

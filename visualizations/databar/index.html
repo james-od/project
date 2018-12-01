@@ -419,9 +419,14 @@ document.addEventListener('mousemove', function(evt) {
 }, false);
 
 document.addEventListener('click', function(evt) {
-  console.log(event.clientX)
-  console.log(event.clientY)
-  parent.window.networkcube.timeRange(-128436529, 66957942857.14288, 1, true)
+  //can convert to timeArray first and last label
+  initialTime = new Date('1960-12-13T12:00:00+00:00').getTime() / 1000
+  finalTime = new Date('1992-06-03T12:00:00+01:00').getTime() / 1000
+  console.log(initialTime)
+  console.log(finalTime)
+  console.log(event.clientX + " " + width)
+  console.log(initialTime + (clientX/width * (finalTime - initialTime)))
+  parent.window.networkcube.timeRange(initialTime, finalTime/2, 1, true)
 }, false);
 
 

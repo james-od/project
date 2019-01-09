@@ -228,6 +228,37 @@ function getStateOfGrapghAtT(t){
   return {"edges": ret_edges, "nodes": ret_nodes}
 }
 
+function getFormattedStateOfGrapghAtT(t){
+  edges = dgraph.timeArrays.links[t]
+  ret = {}
+  ret_nodes = new Set([])
+  for(i=0;i<edges.length;i++){
+    edge = edges[i]
+    source = dgraph.linkArrays.source[edge]
+    target = dgraph.linkArrays.target[edge]
+    ret_nodes.add(source)
+    ret_nodes.add(target)
+    if(ret[source]){
+      ret[source].push(target)
+    }else{
+      ret[source] = [target]
+    }
+    if(!(ret[target])){
+      ret[target] = []
+    }
+    if(ret[target]){
+      ret[target].push(source)
+    }else{
+      ret[target] = [source]
+    }
+    if(!(ret[source])){
+      ret[source] = []
+    }
+  }
+  console.log(ret)
+  return {"graph": ret, "nodes": ret_nodes}
+}
+
 class Graph {
    constructor() {
       this.edges = {};
@@ -318,6 +349,61 @@ function getClusterCounts(){
 
 getClusterCounts()
 
+var visited = {}
+function dfs_visit_all_connected(node, graph){
+  console.log("DFS - node = "+ node)
+  var connected = graph[node]
+  for(var i=0; i<connected.length; i++){
+    console.log("DFS, visiting " + connected[i] + " i = "+ i + " seen already?: " + visited[connected[i]])
+    if(visited[connected[i]] == false){
+      visited[connected[i]] = true
+      dfs_visit_all_connected(connected[i], graph)
+    }
+  }
+  console.log("go back up?")
+}
+
+/*
+Effectively - for every node in graph - mark it as visited
+then visit all of it's connections. This is one connected component.
+When repeating for the second node, if it hasn't already been visited then
+the number of connected components will increase.
+*/
+function getNumberOfConnectedComponentsAtT(t){
+  visited = {}
+  //console.log("NUMBER OF CONNECTED COMPONENTS")
+  formattedGraph = getFormattedStateOfGrapghAtT(t)
+  graph = formattedGraph["graph"]
+  nodes = Array.from(formattedGraph["nodes"])
+  //console.log(graph)
+
+  connected_components = 0
+  //Set every node in the array to visited=false initially
+  for(var i=0;i<nodes.length;i++){
+    visited[nodes[i]] = false
+  }
+  for(var node in graph){
+    //console.log("Init, visiting " + node + " seen already?: " + visited[node])
+    if(visited[node] == false){
+      visited[node] = true
+      connected_components += 1
+      //console.log("increasing CC")
+      dfs_visit_all_connected(node, graph)
+    }
+  }
+  //console.log("connected_components = " + connected_components)
+  return connected_components
+}
+//Testing
+//getNumberOfConnectedComponentsAtT(15) //2
+//getNumberOfConnectedComponentsAtT(1) //1
+allConnectedComponents = []
+for(j=0;j<60;j++){
+  allConnectedComponents.push(getNumberOfConnectedComponentsAtT(j))
+}
+console.log(allConnectedComponents)
+
+
 function convertToCoords(x){
   len = x.length
   step = Math.ceil(width / len)
@@ -338,6 +424,8 @@ function convertToCoords(x){
   return ret
 }
 
+var points5 = convertToCoords(allConnectedComponents);
+graph5 = drawLineGraph(points5, "yellow", 3, "CC")
 
 var points4 = convertToCoords(allDiameters);
 graph4 = drawLineGraph(points4, "purple", 3, "Diameter")
@@ -416,6 +504,7 @@ document.addEventListener('mousemove', function(evt) {
   transition(points2, graph2, mousePos.x);
   transition(points3, graph3, mousePos.x);
   transition(points4, graph4, mousePos.x);
+  transition(points5, graph5, mousePos.x);
 }, false);
 
 document.addEventListener('click', function(evt) {

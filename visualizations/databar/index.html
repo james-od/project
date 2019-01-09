@@ -425,8 +425,9 @@ document.addEventListener('click', function(evt) {
   console.log(initialTime)
   console.log(finalTime)
   console.log(event.clientX + " " + width)
-  console.log(initialTime + (clientX/width * (finalTime - initialTime)))
-  parent.window.networkcube.timeRange(initialTime, finalTime/2, 1, true)
+  clicked_time_point = initialTime + (event.clientX/width * (finalTime - initialTime))
+  console.log(clicked_time_point)
+  parent.window.networkcube.timeRange(clicked_time_point *0.95, clicked_time_point*1.05, 1, true)
 }, false);
 
 

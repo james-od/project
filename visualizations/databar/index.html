@@ -424,18 +424,23 @@ function convertToCoords(x){
   return ret
 }
 
+var originalpoints5 = allConnectedComponents
 var points5 = convertToCoords(allConnectedComponents);
-graph5 = drawLineGraph(points5, "yellow", 3, "CC")
+graph5 = drawLineGraph(points5, "brown", 3, "CC")
 
+var originalpoints4 = allDiameters
 var points4 = convertToCoords(allDiameters);
 graph4 = drawLineGraph(points4, "purple", 3, "Diameter")
 
+var originalpoints3 = calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint)
 var points3 = convertToCoords(calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint));
 graph3 = drawLineGraph(points3, "green", 3, "Density")
 
+var originalpoints2 = numberOfLinksAtEachTimeJump
 var points2 = convertToCoords(numberOfLinksAtEachTimeJump);
 graph2 = drawLineGraph(points2, "blue", 2, "Links")
 
+var originalpoints1 = nodeSetLengthAtEachPoint
 var points1 = convertToCoords(nodeSetLengthAtEachPoint);
 graph1 = drawLineGraph(points1, "red", 1, "Nodes")
 
@@ -459,7 +464,21 @@ function approximateXY(points, line, mouseX, trueLength){
   }
 }
 
-function transition(points, graph, mouseX) {
+function getYlabelFromyCoord(originalpoints, points, approx){
+  console.log(originalpoints)
+  points = points.slice(1, points.length - 2)
+  console.log(points)
+  console.log(approx.x)
+  ylabel = "n/a"
+  for(point in points){
+    if(points[point][0] == approx.x){
+      ylabel = "" + Math.round(originalpoints[point]  * 100) / 100
+    }
+  }
+  return ylabel
+}
+
+function transition(originalpoints, points, graph, mouseX) {
 
   var pathLength = graph.path.node().getTotalLength();
   //console.log("LENGTH " + pathLength)
@@ -479,13 +498,15 @@ function transition(points, graph, mouseX) {
   //console.log("Approximated X" + approx)
   //console.log("Actual X " + pt.x)
 
-  //console.log("id = " + graph.id + " prcnt = " + prcnt + "x = " + pt.x + " y= " + pt.y)
+  ylabel = getYlabelFromyCoord(originalpoints, points, approx)
+
+
   if(approx.x && approx.y){
     graph.circle.selectAll("circle").attr("transform", function(d) {
         return "translate(" + approx.x + "," + approx.y + ")"
     });
     graph.circle.selectAll("text").attr("transform", function(d) {
-        graph.circle.selectAll("text").text("" + Math.round(50 - approx.y))
+        graph.circle.selectAll("text").text(ylabel)
         return "translate(" + approx.x + "," + approx.y + ")"
     });
   }
@@ -500,11 +521,11 @@ function getMousePos(svg, evt) {
 
 document.addEventListener('mousemove', function(evt) {
   var mousePos = getMousePos(document, evt);
-  transition(points1, graph1, mousePos.x);
-  transition(points2, graph2, mousePos.x);
-  transition(points3, graph3, mousePos.x);
-  transition(points4, graph4, mousePos.x);
-  transition(points5, graph5, mousePos.x);
+  transition(originalpoints1, points1, graph1, mousePos.x);
+  transition(originalpoints2, points2, graph2, mousePos.x);
+  transition(originalpoints3, points3, graph3, mousePos.x);
+  transition(originalpoints4, points4, graph4, mousePos.x);
+  transition(originalpoints5, points5, graph5, mousePos.x);
 }, false);
 
 document.addEventListener('click', function(evt) {

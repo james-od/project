@@ -45,6 +45,32 @@ line {
   opacity: 0.05;
 }
 
+/* Style the button that is used to open and close the collapsible content */
+.collapsible {
+  background-color: #eee;
+  color: #444;
+  cursor: pointer;
+  padding: 9px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+}
+
+/* Style the collapsible content. Note: hidden by default */
+.content {
+  padding: 0 18px;
+  display: none;
+  overflow: hidden;
+  background-color: #f1f1f1;
+}
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+.active, .collapsible:hover {
+  background-color: #ccc;
+}
+
 </style>
 <script src="../nodelink/lib/d3.js"></script>
 <script src="../../core/networkcube.js"></script>
@@ -95,12 +121,24 @@ width = window.innerWidth -30
 
 function drawLineGraph(points, circleColor, id, title){
 
-  var svg = d3.select(".slides").append("li").attr("class", "slide").append("svg")
+  var svg = d3.select(".slides")
+      .append("div");
+
+
+  var titlebar = svg.append("li")
+      .text("+ " + title)
+      .attr("class", "collapsible")
+      .attr("fill", "black")
+      .style("text-anchor", "middle")
+      .style("font-family", "Helvetica")
+      .attr("transform", "translate( 40, 20 )")
+
+  next = svg.append("li").attr("class", "slide content").append("svg")
       .attr("width", width -30)
       .attr("height", 50);
 
 
-  var path = svg.append("path")
+  var path = next.append("path")
       .data([points])
       .style("stroke", circleColor)
       .style("fill", circleColor)
@@ -109,7 +147,7 @@ function drawLineGraph(points, circleColor, id, title){
       .tension(0) // Catmull–Rom
       .interpolate("linear"));
 
-  svg.selectAll(".point")
+  next.selectAll(".point")
     .data(points)
     .enter().append("circle")
     .attr("r", 2)
@@ -117,7 +155,7 @@ function drawLineGraph(points, circleColor, id, title){
     .style("stroke", circleColor)
     .attr("transform", function(d) { return "translate(" + d + ")"; });
 
-  svg.selectAll(".line")
+  next.selectAll(".line")
     .data(points)
     .enter().append("line")
     .attr("x1", function(d) { return d[0] })
@@ -126,14 +164,7 @@ function drawLineGraph(points, circleColor, id, title){
     .attr("y2", 50)
     .attr("stroke-dasharray", function(d) { return (d + 1) + ",5"});
 
-  var titleText = svg.append("text")
-    .attr("fill", "black")
-    .style("text-anchor", "middle")
-    .text(title + " ".repeat(8-title.length) ) //trying to get titles to align
-    .style("font-family", "Helvetica")
-    .attr("transform", "translate( 40, 20 )");
-
-  var circleGroup = svg.append("g")
+  var circleGroup = next.append("g")
 
   var circle = circleGroup.append("circle")
       .attr("r", 7)
@@ -445,6 +476,21 @@ var points1 = convertToCoords(nodeSetLengthAtEachPoint);
 graph1 = drawLineGraph(points1, "red", 1, "Nodes")
 
 allGraphs = [graph1, graph2]
+
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {
+      content.style.display = "none";
+    } else {
+      content.style.display = "block";
+    }
+  });
+}
 
 
 //transition();

@@ -193,13 +193,71 @@ layout = d3.layout.force()
 showMessage('Calculating<br/>layout');
 init();
 
+
+/*
+This creates paths of stars based on the number of points the star should have
+e.g a four point star would look like:
+
+var fourPointStar = [
+  {angle: 0, r1: 2},
+  {angle: Math.PI * 0.25, r1: 1},
+  {angle: Math.PI * 0.5, r1: 2},
+  {angle: Math.PI * 0.75, r1: 1},
+  {angle: Math.PI, r1: 2},
+  {angle: Math.PI * 1.25, r1: 1},
+  {angle: Math.PI * 1.5, r1: 2},
+  {angle: Math.PI * 1.75, r1: 1},
+  {angle: Math.PI * 2, r1: 2}
+];
+
+And a five point star would look like:
+
+var fivePointStar = [
+  {angle: 0, r1: 2},
+  {angle: Math.PI * 0.2, r1: 1},
+  {angle: Math.PI * 0.4, r1: 2},
+  {angle: Math.PI * 0.6, r1: 1},
+  {angle: Math.PI * 0.8, r1: 2},
+  {angle: Math.PI, r1: 1},
+  {angle: Math.PI * 1.2, r1: 2},
+  {angle: Math.PI * 1.4, r1: 1},
+  {angle: Math.PI * 1.6, r1: 2},
+  {angle: Math.PI * 1.8, r1: 1},
+  {angle: Math.PI * 2, r1: 2}
+];
+*/
+function generateStar(degree){
+
+  increment = 1/degree
+  points = []
+  i = 0
+  distance = 2
+  while(i<2){
+    points.push(
+      {angle: Math.PI * i, r1: distance}
+    )
+    i += increment
+    if(distance == 2){
+      distance = 1
+    }
+    else{
+      distance = 2
+    }
+  }
+
+  console.log("MADE STAR:")
+  console.log(points)
+  return points
+}
+
 function getPathDataForVolatility(scale, node){
 
   console.log("NODE")
   console.log(node)
   volatility = getNodeVolatility(node)
   console.log(volatility)
-  scale = node.width /100
+
+  scale = node.width / 2.5
   var radialAreaGenerator = d3.svg.area.radial()
     .angle(function(d) {
       return d.angle;
@@ -208,19 +266,7 @@ function getPathDataForVolatility(scale, node){
       return d.r1 * scale;
     });
 
-    var fourPointStar = [
-    	{angle: 0, r1: 80},
-    	{angle: Math.PI * 0.25, r1: 40},
-    	{angle: Math.PI * 0.5, r1: 80},
-    	{angle: Math.PI * 0.75, r1: 40},
-    	{angle: Math.PI, r1: 80},
-    	{angle: Math.PI * 1.25, r1: 40},
-    	{angle: Math.PI * 1.5, r1: 80},
-    	{angle: Math.PI * 1.75, r1: 40},
-    	{angle: Math.PI * 2, r1: 80}
-    ];
-
-  var pathData = radialAreaGenerator(fourPointStar);
+  var pathData = radialAreaGenerator(generateStar( Math.round(volatility*2) ));
   return pathData
 
 }

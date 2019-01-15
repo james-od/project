@@ -503,6 +503,12 @@ function updateNodeSize() {
         .attr('r', function (n) { return getNodeRadius(n); });
 }
 function updateNodes() {
+  volatilitySpikes
+      .attr('d', function(d) {
+        return getPathDataForVolatility(0.5, d)
+      })
+      .style("fill", "black");
+
     visualNodes
         .style('fill', function (d) {
         var color;

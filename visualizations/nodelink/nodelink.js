@@ -192,14 +192,47 @@ layout = d3.layout.force()
     .start();
 showMessage('Calculating<br/>layout');
 init();
+
+function getPathDataForVolatility(scale, node){
+
+  console.log("NODE")
+  console.log(node)
+  volatility = getNodeVolatility(node)
+  console.log(volatility)
+  scale = node.width /100
+  var radialAreaGenerator = d3.svg.area.radial()
+    .angle(function(d) {
+      return d.angle;
+    })
+    .outerRadius(function(d) {
+      return d.r1 * scale;
+    });
+
+    var fourPointStar = [
+    	{angle: 0, r1: 80},
+    	{angle: Math.PI * 0.25, r1: 40},
+    	{angle: Math.PI * 0.5, r1: 80},
+    	{angle: Math.PI * 0.75, r1: 40},
+    	{angle: Math.PI, r1: 80},
+    	{angle: Math.PI * 1.25, r1: 40},
+    	{angle: Math.PI * 1.5, r1: 80},
+    	{angle: Math.PI * 1.75, r1: 40},
+    	{angle: Math.PI * 2, r1: 80}
+    ];
+
+  var pathData = radialAreaGenerator(fourPointStar);
+  return pathData
+
+}
 function init() {
+
     var _this = this;
     visualNodes = nodeLayer.selectAll('nodes')
         .data(nodes)
         .enter()
         .append('circle')
         .attr('r', function (n) { return getNodeRadius(n); })
-        .attr('class', 'nodes')
+        .attr('class', 'nodes circle')
         .style('fill', "#ff8800")
         .on('mouseover', mouseOverNode)
         .on('mouseout', mouseOutNode)
@@ -214,6 +247,17 @@ function init() {
         }
         networkcube.selection('add', { nodes: [d] });
     });
+
+    // Create a path element and set its d attribute
+    volatilitySpikes = nodeLayer.selectAll('nodes')
+        .data(nodes)
+        .enter()
+        .append('path')
+        .attr('d', function(d) {
+          return getPathDataForVolatility(0.5, d)
+        })
+        .style("fill", "black");
+
     nodeLabelOutlines = labelLayer.selectAll('.nodeLabelOutlines')
         .data(nodes)
         .enter()
@@ -263,6 +307,10 @@ function updateLayout() {
     visualNodes
         .attr('cx', function (d, i) { return d.x; })
         .attr('cy', function (d, i) { return d.y; });
+    volatilitySpikes
+        .attr("transform", function(d) {
+            return "translate(" + d.x + "," + d.y + ")"
+        })
     nodeLabels
         .attr('x', function (d, i) { return d.x + OFFSET_LABEL.x; })
         .attr('y', function (d, i) { return d.y + OFFSET_LABEL.y; });

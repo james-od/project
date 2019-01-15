@@ -34,7 +34,7 @@ svg text.nodeLabelOutlines{
 
 
 path{
-    fill: none;
+    fill: #ddd;
 }
 
 /* HTML */
@@ -46,4 +46,3 @@ path{
 
 #legendDiv{
 }
-

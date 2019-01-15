@@ -228,6 +228,10 @@ var fivePointStar = [
 */
 function generateStar(degree){
 
+  if(degree <= 2){
+    return []
+  }
+
   increment = 1/degree
   points = []
   i = 0
@@ -238,7 +242,7 @@ function generateStar(degree){
     )
     i += increment
     if(distance == 2){
-      distance = 1
+      distance = 0.75
     }
     else{
       distance = 2

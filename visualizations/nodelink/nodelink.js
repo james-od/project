@@ -110,9 +110,10 @@ function makeDropdown(d3parent, name, values, callback) {
 var timeSvg = d3.select('#timelineDiv')
     .append('svg')
     .attr('width', width)
-    .attr('height', TIMELINE_HEIGHT);
+    .attr('height', TIMELINE_HEIGHT)
+    .attr("transform", "translate(" + 55 + ",0)");
 if (dgraph.times().size() > 1) {
-    var timeSlider = new TimeSlider(dgraph, width - 50);
+    var timeSlider = new TimeSlider(dgraph, width - 90);
     timeSlider.appendTo(timeSvg);
     networkcube.addEventListener('timeRange', timeChangedHandler);
     networkcube.addEventListener('measureChange', measureChangedHandler);
@@ -242,7 +243,7 @@ function generateStar(degree){
     )
     i += increment
     if(distance == 2){
-      distance = 0.75
+      distance = 0.8
     }
     else{
       distance = 2
@@ -282,7 +283,7 @@ function init() {
         .enter()
         .append('circle')
         .attr('r', function (n) { return getNodeRadius(n); })
-        .attr('class', 'nodes circle')
+        .attr('class', 'nodes')
         .style('fill', "#ff8800")
         .on('mouseover', mouseOverNode)
         .on('mouseout', mouseOutNode)
@@ -303,10 +304,10 @@ function init() {
         .data(nodes)
         .enter()
         .append('path')
-        .attr('d', function(d) {
-          return getPathDataForVolatility(0.5, d)
-        })
-        .style("fill", "black");
+        // .attr('d', function(d) {
+        //   return getPathDataForVolatility(0.5, d)
+        // })
+        // .style("fill", "black");
 
     nodeLabelOutlines = labelLayer.selectAll('.nodeLabelOutlines')
         .data(nodes)
@@ -382,7 +383,19 @@ function getNodeRadius(n) {
     return Math.sqrt(n.links().length) * NODE_SIZE + 1;
 }
 
-
+/*
+Volatility is calculated for a given node and time range by creating a data
+structure where each edge maps to a list of 0s or 1s representing each time
+frame. If the edge was avtive during that time frame then the value would be a
+1. So we would have the structure {482: [0,1,0], 484: [0,1,0], 487:[0,1,0] }
+for node 189 if it had all of its potential edges active during t=1 and it's
+potential edges were 482, 484 and 487.
+We then take this structure and average the standard deviations of each. In this
+case the resulting volatility would be std(0,1,0).
+*/
+function getSum(total, num) {
+  return total + num;
+}
 function getNodeVolatility(n) {
     console.log("Calculating volatility")
     console.log(window.document)
@@ -390,18 +403,41 @@ function getNodeVolatility(n) {
     //console.log(n.g.timeArrays.links)
     //console.log(n.links()._elements)
     linksAtEachTime = []
+    edgesConnectedAtEachTime = {}
+    multiplier = 16
+    for(var i=0;i<n.links()._elements.length; i++){
+      edgesConnectedAtEachTime[n.links()._elements[i]] = []
+    }
+    console.log("vol here:")
+    console.log(edgesConnectedAtEachTime)
+    console.log("node id:"+ n._id)
+    console.log("node links: " + n.links()._elements)
     for(var i=time_start._id; i < time_end._id; i++){
       count = 0
       for(var j=0; j<n.links()._elements.length; j++){
         if( n.g.timeArrays.links[i].indexOf(n.links()._elements[j]) > -1 ){
+          edgesConnectedAtEachTime[n.links()._elements[j]].push(1)
+          console.log("incrementing count because " + n.links()._elements[j] +" is in " + n.g.timeArrays.links[i])
           count += 1
+        }else{
+          edgesConnectedAtEachTime[n.links()._elements[j]].push(0)
         }
         linksAtEachTime[i-time_start._id] = count
       }
     }
+    console.log(edgesConnectedAtEachTime)
+    var edgeLists = Object.values(edgesConnectedAtEachTime)
+    var stdsSum = 0
+    for(var i=0;i<edgeLists.length;i++){
+      console.log("sum = " + edgeLists[i].reduce(getSum))
+      stdsSum += edgeLists[i].stanDeviate();
+    }
+    var length = n.links()._elements.length
+    var averageStd = stdsSum/length
     if(linksAtEachTime.length > 2){
-      console.log(linksAtEachTime)
-      return linksAtEachTime.stanDeviate();
+      console.log("result: " + linksAtEachTime.stanDeviate())
+      console.log("result2: " + averageStd)
+      return  averageStd * multiplier;
     }else{
       console.log("NO STD")
       console.log(linksAtEachTime)
@@ -463,11 +499,25 @@ function isHidingNode(n1, n2) {
     var n1s = n1.y - getLabelHeight(n1) / 2 - LABELDISTANCE;
     return n1w < n2.x && n1e > n2.x && n1n < n2.y && n1s > n2.y;
 }
+
+var div = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
 function mouseOverNode(n) {
     networkcube.highlight('set', { nodes: [n] });
+        div.transition()
+            .duration(200)
+            .style("opacity", .9);
+        div .html("Volatility: " + Math.round(getNodeVolatility(n) * 100)/100)
+            .style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY - 40) + "px");
 }
 function mouseOutNode(n) {
     networkcube.highlight('reset');
+    div.transition()
+        .duration(500)
+        .style("opacity", 0);
 }
 
 function measureChangedHandler(m) {
@@ -503,33 +553,35 @@ function updateNodeSize() {
         .attr('r', function (n) { return getNodeRadius(n); });
 }
 function updateNodes() {
-  volatilitySpikes
-      .attr('d', function(d) {
-        return getPathDataForVolatility(0.5, d)
-      })
-      .style("fill", "black");
+  if(volatilityMeasureEnabled){
+    volatilitySpikes
+        .attr('d', function(d) {
+          return getPathDataForVolatility(0.5, d)
+        })
+        .style("fill", "#333333");
+  }
 
     visualNodes
         .style('fill', function (d) {
         var color;
-        if(volatilityMeasureEnabled){
-            volatility = getNodeVolatility(d)
-            if(volatility > 2.0){
-              color = "#f13030";
-            }
-            else if(volatility > 1.5){
-              color = "#ff851b"
-            }
-            else if(volatility > 1.0){
-              color = "#ffdc00"
-            }
-        }
-        else if (d.isHighlighted()) {
-            color = COLOR_HIGHLIGHT;
-        }
-        else {
-            color = networkcube.getPriorityColor(d);
-        }
+        // if(volatilityMeasureEnabled){
+        //     volatility = getNodeVolatility(d)
+        //     if(volatility > 2.0){
+        //       color = "#f13030";
+        //     }
+        //     else if(volatility > 1.5){
+        //       color = "#ff851b"
+        //     }
+        //     else if(volatility > 1.0){
+        //       color = "#ffdc00"
+        //     }
+        // }
+        // else if (d.isHighlighted()) {
+        //     color = COLOR_HIGHLIGHT;
+        // }
+        // else {
+        //     color = networkcube.getPriorityColor(d);
+        // }
         if (!color){
             color = "#333333";
         }

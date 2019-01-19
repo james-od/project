@@ -396,53 +396,56 @@ case the resulting volatility would be std(0,1,0).
 function getSum(total, num) {
   return total + num;
 }
+function getNodePairFromLink(g, link){
+  console.log("getNodePairFromLink")
+  for(var i=0; i<g.nodePairArrays.links.length; i++){
+    if(g.nodePairArrays.links[i].indexOf(link) > -1){
+      return i
+    }
+  }
+  return -1
+}
 function getNodeVolatility(n) {
     console.log("Calculating volatility")
     console.log(window.document)
 
     //console.log(n.g.timeArrays.links)
     //console.log(n.links()._elements)
-    linksAtEachTime = []
     edgesConnectedAtEachTime = {}
     multiplier = 16
-    for(var i=0;i<n.links()._elements.length; i++){
-      edgesConnectedAtEachTime[n.links()._elements[i]] = []
-    }
     console.log("vol here:")
+    for(var i=0;i<n.g.nodePairArrays.length; i++){
+      edgesConnectedAtEachTime[i] = []
+    }
     console.log(edgesConnectedAtEachTime)
-    console.log("node id:"+ n._id)
-    console.log("node links: " + n.links()._elements)
     for(var i=time_start._id; i < time_end._id; i++){
-      count = 0
       for(var j=0; j<n.links()._elements.length; j++){
         if( n.g.timeArrays.links[i].indexOf(n.links()._elements[j]) > -1 ){
-          edgesConnectedAtEachTime[n.links()._elements[j]].push(1)
-          console.log("incrementing count because " + n.links()._elements[j] +" is in " + n.g.timeArrays.links[i])
-          count += 1
+          console.log("Looking here:")
+          //console.log(n._id)
+          //console.log(n.links()._elements[j])
+          //console.log(getNodePairFromLink(dgraph, n.links()._elements[j]))
+          edgesConnectedAtEachTime[getNodePairFromLink(dgraph, n.links()._elements[j])].push(1)
         }else{
-          edgesConnectedAtEachTime[n.links()._elements[j]].push(0)
+          edgesConnectedAtEachTime[getNodePairFromLink(dgraph, n.links()._elements[j])].push(0)
         }
-        linksAtEachTime[i-time_start._id] = count
       }
     }
     console.log(edgesConnectedAtEachTime)
     var edgeLists = Object.values(edgesConnectedAtEachTime)
     var stdsSum = 0
     for(var i=0;i<edgeLists.length;i++){
-      console.log("sum = " + edgeLists[i].reduce(getSum))
-      stdsSum += edgeLists[i].stanDeviate();
+      //skip empty rows
+      if(edgeLists[i].length != 0){
+        console.log("sum = " + edgeLists[i].reduce(getSum))
+        stdsSum += edgeLists[i].stanDeviate();
+      }
     }
     var length = n.links()._elements.length
     var averageStd = stdsSum/length
-    if(linksAtEachTime.length > 2){
-      console.log("result: " + linksAtEachTime.stanDeviate())
-      console.log("result2: " + averageStd)
-      return  averageStd * multiplier;
-    }else{
-      console.log("NO STD")
-      console.log(linksAtEachTime)
-      return 0
-    }
+    console.log("result: " + averageStd)
+    return  averageStd * multiplier;
+
 }
 function updateLabelVisibility() {
     hiddenLabels = [];

@@ -507,12 +507,41 @@ var div = d3.select("body").append("div")
     .attr("class", "tooltip")
     .style("opacity", 0);
 
+function everyIndexOf(item, list){
+  var a=[],i=-1;
+  while((i=list.indexOf(item,i+1)) >= 0) a.push(i);
+  return a;
+}
+
+function getLinksFromNode(n){
+  sources = everyIndexOf(n._id, n.g.linkArrays.source)
+  targets = everyIndexOf(n._id, n.g.linkArrays.target)
+  return sources.concat(targets)
+}
+
+function getNumberOfNodeEdges(n){
+  //time_start
+  //time_end
+  allLinks = getLinksFromNode(n)
+  numberOfLinksInTimeFrame = 0
+  for(i=time_start._id; i<time_end._id; i++){
+    for(j=0;j<allLinks.length;j++){
+      if(n.g.timeArrays.links[i].indexOf(allLinks[j]) > -1){
+        numberOfLinksInTimeFrame += 1
+      }
+    }
+  }
+
+  return numberOfLinksInTimeFrame
+}
+
 function mouseOverNode(n) {
+    numberOfEdges = getNumberOfNodeEdges(n)
     networkcube.highlight('set', { nodes: [n] });
         div.transition()
             .duration(200)
             .style("opacity", .9);
-        div .html("Volatility: " + Math.round(getNodeVolatility(n) * 100)/100)
+        div .html("Volatility: " + Math.round(getNodeVolatility(n) * 100)/100 + " Centrality: "+numberOfEdges)
             .style("left", (d3.event.pageX) + "px")
             .style("top", (d3.event.pageY - 40) + "px");
 }

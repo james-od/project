@@ -6,7 +6,7 @@
 path {
   fill: none;
   stroke: #000;
-  stroke-width: 3px;
+  stroke-width: 1px;
 }
 
 circle {
@@ -120,26 +120,57 @@ width = window.innerWidth -30
 
 function drawLineGraph(points, circleColor, id, title, min, max){
 
+  pointsSmall = convertToCoords(points, 25);
+  pointsLarge = convertToCoords(points, 100);
+
   var svg = d3.select(".slides")
       .append("div");
 
 
   var titlebar = svg.append("li")
-      .text("+ " + title)
       .attr("class", "collapsible")
       .attr("fill", "black")
       .style("text-anchor", "middle")
       .style("font-family", "Helvetica")
       .attr("transform", "translate( 40, 20 )")
 
+  var next1 = titlebar.append("svg")
+      .attr("class", "slide content")
+      .attr("width", width -30)
+      .attr("height", "30px");
+
+  var chart1 = next1.append("g")
+      .attr("class", "minigraph")
+      .style("height", "25px")
+      .attr("transform", function(d) { return "translate(15,5)"; })
+
+  var newTitle = next1
+      .append("text")
+      .text(title)
+      .attr("fill", "black")
+      .style("text-anchor", "start")
+      .style("font-family", "Helvetica")
+      .attr("transform", "translate(15,15)");
+
+  var path1 = chart1.append("path")
+      .data([pointsSmall])
+      .style("stroke", circleColor)
+      .style("fill", circleColor)
+      .style("fill-opacity", 0.8)
+      .style("float", "right")
+      .attr("d", d3.svg.line()
+      .tension(0) // Catmull–Rom
+      .interpolate("linear"));
+
+
   var next = svg.append("li").append("svg")
       .attr("class", "slide content")
       .attr("width", width -30)
-      .attr("height", "65px");
+      .attr("height", "110px");
 
   var yScale = d3.scale.linear()
   	        .domain([min, max])
-            .range([40, 0]);
+            .range([90, 0]);
 
   var yAxis = d3.svg.axis()
             .orient("left")
@@ -152,11 +183,11 @@ function drawLineGraph(points, circleColor, id, title, min, max){
 
   var chart = next.append("g")
       .style("height", "100px")
-      .attr("transform", function(d) { return "translate(30,5)"; });
+      .attr("transform", function(d) { return "translate(30,0)"; });
 
 
   var path = chart.append("path")
-      .data([points])
+      .data([pointsLarge])
       .style("stroke", circleColor)
       .style("fill", circleColor)
       .style("fill-opacity", 0.8)
@@ -166,7 +197,7 @@ function drawLineGraph(points, circleColor, id, title, min, max){
       .interpolate("linear"));
 
   chart.selectAll(".point")
-    .data(points)
+    .data(pointsLarge)
     .enter().append("circle")
     .attr("r", 2)
     .style("fill", circleColor)
@@ -177,12 +208,12 @@ function drawLineGraph(points, circleColor, id, title, min, max){
     });
 
   chart.selectAll(".line")
-    .data(points)
+    .data(pointsLarge)
     .enter().append("line")
     .attr("x1", function(d) { return d[0] })
     .attr("x2", function(d) { return d[0] })
     .attr("y1", 0)
-    .attr("y2", 50)
+    .attr("y2", 100)
     .attr("stroke-dasharray", function(d) { return (d + 1) + ",5"});
 
   var circleGroup = chart.append("g")
@@ -192,7 +223,7 @@ function drawLineGraph(points, circleColor, id, title, min, max){
       .style("fill", circleColor)
       .style("stroke", circleColor)
       .style("opacity", 0.5)
-      .attr("transform", "translate(" + points[0] + ")");
+      .attr("transform", "translate(" + pointsLarge[0] + ")");
 
   var circle2 = circleGroup.append("text")
   .text("")
@@ -456,7 +487,7 @@ for(j=0;j<60;j++){
 console.log(allConnectedComponents)
 
 
-function convertToCoords(x){
+function convertToCoords(x, scale){
   len = x.length
   step = Math.ceil(width / len)
   var max = x.reduce(function(a, b) {
@@ -464,59 +495,69 @@ function convertToCoords(x){
   });
   //console.log("YEEER" + x + " " + step + " " + max )
   ret = []
-  ret.push([0,50])
+  ret.push([0,scale])
   for(i=0; i<normalised_gaps_X_coords.length; i++){
-    scaledY = x[i] / max * 50;
-    ret.push([normalised_gaps_X_coords[i]*step, 50-scaledY])
+    scaledY = x[i] / max * scale;
+    ret.push([normalised_gaps_X_coords[i]*step, scale-scaledY])
     //console.log("pushing", [normalised_gaps_X_coords[i]*step, 50-scaledY])
   }
-  ret.push([len*step, 50])
-  ret.push([0,50])
+  ret.push([len*step, scale])
+  ret.push([0,scale])
   //console.log(ret)
   return ret
 }
+var points5 = convertToCoords(allConnectedComponents, 100);
+var points4 = convertToCoords(allDiameters, 100);
+var points3 = convertToCoords(calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint), 100);
+var points2 = convertToCoords(numberOfLinksAtEachTimeJump, 100);
+var points1 = convertToCoords(nodeSetLengthAtEachPoint, 100);
 
 var originalpoints5 = allConnectedComponents
 console.log("CHECKIT")
 max = Math.max.apply(Math, originalpoints5)
-var points5 = convertToCoords(allConnectedComponents);
-graph5 = drawLineGraph(points5, "brown", 3, "Connected Components", 0, max)
+graph5 = drawLineGraph(allConnectedComponents, "brown", 3, "Connected Components", 0, max)
 
 var originalpoints4 = allDiameters
 max = Math.max.apply(Math, originalpoints4)
-var points4 = convertToCoords(allDiameters);
-graph4 = drawLineGraph(points4, "purple", 3, "Diameter", 0, max)
+graph4 = drawLineGraph(allDiameters, "purple", 3, "Diameter", 0, max)
 
 var originalpoints3 = calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint)
 max = Math.max.apply(Math, originalpoints3)
-var points3 = convertToCoords(calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint));
-graph3 = drawLineGraph(points3, "green", 3, "Density", 0, max)
+graph3 = drawLineGraph(calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint), "green", 3, "Density", 0, max)
 
 var originalpoints2 = numberOfLinksAtEachTimeJump
 max = Math.max.apply(Math, originalpoints2)
-var points2 = convertToCoords(numberOfLinksAtEachTimeJump);
-graph2 = drawLineGraph(points2, "blue", 2, "Links", 0, max)
+graph2 = drawLineGraph(numberOfLinksAtEachTimeJump, "blue", 2, "Links", 0, max)
 
 var originalpoints1 = nodeSetLengthAtEachPoint
 max = Math.max.apply(Math, originalpoints1)
-var points1 = convertToCoords(nodeSetLengthAtEachPoint);
-graph1 = drawLineGraph(points1, "red", 1, "Nodes", 0, max)
+graph1 = drawLineGraph(nodeSetLengthAtEachPoint, "red", 1, "Nodes", 0, max)
+
 
 allGraphs = [graph1, graph2]
 
 var coll = document.getElementsByClassName("collapsible");
-var i;
+var minigraph = document.getElementsByClassName("minigraph");
 
-for (i = 0; i < coll.length; i++) {
+for(var i = 0; i < coll.length; i++) {
   coll[i].addEventListener("click", function() {
     this.classList.toggle("active");
     var content = this.nextElementSibling;
     if (content.style.display === "block") {
+      console.log(this)
+      console.log(this.getElementsByClassName("minigraph"))
+      this.getElementsByClassName("minigraph")[0].style.display = "block"
       content.style.display = "none";
     } else {
+      console.log(this)
+      console.log(this.getElementsByClassName("minigraph"))
+      this.getElementsByClassName("minigraph")[0].style.display = "none"
       content.style.display = "block";
     }
   });
+  //Dirty hack, gets the graphs into the right state
+  coll[i].click()
+  coll[i].click()
 }
 
 
@@ -557,7 +598,7 @@ function transition(originalpoints, points, graph, mouseX) {
   //console.log("LENGTH " + pathLength)
   //console.log("WIDTH " + width)
   //console.log("HEIGHT " + 50)
-  pathLength = pathLength - (2*50) - width
+  pathLength = pathLength - (2*100) - width
   //console.log("TRUE LENGTH " + pathLength)
   cursor_prcnt = mouseX / width;
 

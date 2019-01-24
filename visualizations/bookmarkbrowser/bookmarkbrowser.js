@@ -31,10 +31,13 @@ function createSelection(type) {
         updateLists();
     }, 500);
 }
+
+var updatedMeasureList = 0
 function updateLists() {
     updateList('node', 'Node Selections');
     updateList('link', 'Link Selections');
     updateMeasureList('measure', 'Measure Selections');
+
     d3.selectAll('.icon_showColor')
         .attr('xlink:href', function (d) { if (d.showColor)
         return 'drop-full.png'; return 'drop-empty.png'; });
@@ -57,60 +60,48 @@ function updateMeasureList() {
     var title = d3.select('#title_measure');
     title.html('Measure Selections' + ' (' + measures.length + ')');
 
-    d3.select('#div_measure')
-        .selectAll('.selectionDiv_measure')
-        .remove();
-    var measureGs = d3.select('#div_measure')
-        .selectAll('.selectionDiv_measure')
-        .data(measures)
-        .enter()
-        .append('div')
-        .attr('height', LINE_HEIGHT)
-        .attr('width', width)
-//        .append('text')
-//        .attr('x', '23')
-//        .attr('y', '10.4')
-//        .style('font-size', '13px')
-//        .text(function(d){
-//            return d;
-//        }).append('svg')
-//        .attr('height', LINE_HEIGHT)
-//        .attr('width', width)
+    if(document.getElementById("div_measure").childElementCount <= 2){
 
-    measureGs.append('text')
-        .attr('x', '23')
-        .attr('y', '10.4')
-        .style('font-size', '13px')
-        .text(function(d){
-            return d;
-        })
-        .append('br')
-    measureGs.append('input')
-        .attr('type', 'checkbox')
-        .attr('x', 0)
-        .attr('y', 0)
-        .attr('width', RECT_SIZE)
-        .attr('height', RECT_SIZE)
-        .attr('id', function (d) { return "checkbox-" + d.toLowerCase().replace(/\s/g, ''); })
-        .on('click', function (d) {
-          networkcube.measureChange(d);
-        })
-        .style('fill', function (d) { return "red"; });
-/*
-        .attr('font-family', 'Helvetica')
-        .attr('x', RECT_SIZE + 10)
-        .attr('y', RECT_SIZE * .8)
-        .append('br');
+      d3.select('#div_measure')
+          .selectAll('.selectionDiv_measure')
+          .remove();
+      var measureGs = d3.select('#div_measure')
+          .selectAll('.selectionDiv_measure')
+          .data(measures)
+          .enter()
+          .append('div')
+          .attr('height', LINE_HEIGHT)
+          .attr('width', width)
+  //        .append('text')
+  //        .attr('x', '23')
+  //        .attr('y', '10.4')
+  //        .style('font-size', '13px')
+  //        .text(function(d){
+  //            return d;
+  //        }).append('svg')
+  //        .attr('height', LINE_HEIGHT)
+  //        .attr('width', width)
 
-        .attr('class', 'selectionDiv_measure')
-        .attr('height', LINE_HEIGHT)
-        .append('svg')
-        .attr('class', 'svg_measure')
-        .attr('height', LINE_HEIGHT)
-        .attr('width', width)
-        .append('g')
-        .attr('transform', 'translate(' + INTENT + ',0)');
-*/
+      measureGs.append('text')
+          .attr('x', '23')
+          .attr('y', '10.4')
+          .style('font-size', '13px')
+          .text(function(d){
+              return d;
+          })
+          .append('br')
+      measureGs.append('input')
+          .attr('type', 'checkbox')
+          .attr('x', 0)
+          .attr('y', 0)
+          .attr('width', RECT_SIZE)
+          .attr('height', RECT_SIZE)
+          .attr('id', function (d) { return "checkbox-" + d.toLowerCase().replace(/\s/g, ''); })
+          .on('click', function (d) {
+            networkcube.measureChange(d);
+          })
+          .style('fill', function (d) { return "red"; });
+      }
 }
 
 function updateList(type, name) {

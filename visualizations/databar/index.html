@@ -166,11 +166,11 @@ function drawLineGraph(points, circleColor, id, title, min, max){
   var next = svg.append("li").append("svg")
       .attr("class", "slide content")
       .attr("width", width -30)
-      .attr("height", "110px");
+      .attr("height", "130px");
 
   var yScale = d3.scale.linear()
   	        .domain([min, max])
-            .range([90, 0]);
+            .range([100, 0]);
 
   var yAxis = d3.svg.axis()
             .orient("left")
@@ -178,12 +178,12 @@ function drawLineGraph(points, circleColor, id, title, min, max){
             .ticks(3);
 
   var yAxisLabel = next.append("g")
-      .attr("transform", function(d) { return "translate(30, 10)"; })
+      .attr("transform", function(d) { return "translate(30, 20)"; })
       .call(yAxis);
 
   var chart = next.append("g")
       .style("height", "100px")
-      .attr("transform", function(d) { return "translate(30,0)"; });
+      .attr("transform", function(d) { return "translate(30,20)"; });
 
 
   var path = chart.append("path")
@@ -565,13 +565,15 @@ for(var i = 0; i < coll.length; i++) {
 
 function approximateXY(points, line, mouseX, trueLength){
   closest_point_to_cursor = points[0]
+  console.log("closest_point_to_cursor = " +closest_point_to_cursor)
   var i;
   for(i=0; i<points.length; i++){
     if(Math.abs(mouseX - points[i][0]) <= Math.abs(mouseX - closest_point_to_cursor[0])){
       closest_point_to_cursor = points[i]
+      console.log("closest_point_to_cursor = " +closest_point_to_cursor)
     }
   }
-  if(closest_point_to_cursor[0] && closest_point_to_cursor[1]){
+  if( (closest_point_to_cursor[0] >= 0) && (closest_point_to_cursor[1] >= 0)){
     return {x: closest_point_to_cursor[0], y: closest_point_to_cursor[1]}
   }else{
     return {x: 0, y: 0}
@@ -615,7 +617,7 @@ function transition(originalpoints, points, graph, mouseX) {
   ylabel = getYlabelFromyCoord(originalpoints, points, approx)
 
 
-  if(approx.x && approx.y){
+  if((approx.x >=0) && (approx.y>=0)){
     graph.circle.selectAll("circle").attr("transform", function(d) {
         return "translate(" + approx.x + "," + approx.y + ")"
     });
@@ -623,6 +625,8 @@ function transition(originalpoints, points, graph, mouseX) {
         graph.circle.selectAll("text").text(ylabel)
         return "translate(" + approx.x + "," + approx.y + ")"
     });
+  }else{
+    console.log("can't get approx" + approx.x + " ; "  +approx.y)
   }
 }
 

@@ -60,7 +60,7 @@ function updateMeasureList() {
     var title = d3.select('#title_measure');
     title.html('Measure Selections' + ' (' + measures.length + ')');
 
-    if(1){
+    if(document.getElementById("div_measure").childElementCount <= 2){
 
       d3.select('#div_measure')
           .selectAll('.selectionDiv_measure')

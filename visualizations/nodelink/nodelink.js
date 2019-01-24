@@ -590,7 +590,11 @@ function updateNodes() {
         .attr('d', function(d) {
           return getPathDataForVolatility(0.5, d)
         })
-        .style("fill", "#333333");
+        .style("fill", "#333333")
+        .style("visibility", "visible");
+  }else{
+    volatilitySpikes
+        .style("visibility", "hidden");
   }
 
     visualNodes
@@ -756,7 +760,7 @@ function stretchVector(vec, finalLength) {
 
 activeMeasures = []
 window.onmessage = function(e){
-//    alert(JSON.stringify(e.data))
+    //alert(JSON.stringify(e.data))
     if(activeMeasures.indexOf(e.data.measure) > -1){
         activeMeasures.splice(activeMeasures.indexOf(e.data.measure), 1)
         if(e.data.measure = "Volatility"){
@@ -768,6 +772,8 @@ window.onmessage = function(e){
     }
     if(activeMeasures.indexOf("Data Bar") > -1){
         hideDataBar()
+    }else{
+        showDataBar()
     }
     // if(activeMeasures.indexOf("Connected Nodes") > -1){
     //     showConnectedNodesGraph()
@@ -778,11 +784,11 @@ window.onmessage = function(e){
     // if(activeMeasures.indexOf("Density") > -1){
     //     showDensityGraph()
     // }
-    // if(activeMeasures.indexOf("Volatility") > -1){
-    //     volatilityMeasureEnabled = true;
-    //     updateNodes();
-    // }
-    alert(activeMeasures)
+    if(activeMeasures.indexOf("Volatility") > -1){
+        volatilityMeasureEnabled = true;
+        updateNodes();
+    }
+    //alert(activeMeasures)
 };
 
 $(document).on("keypress", function (e) {
@@ -851,8 +857,12 @@ while(i < dgraph.matrix.length){
 }
 console.log(lengthsOfMatrixRows)
 
+function showDataBar(){
+  $('#databarFrame').show()
+}
+
 function hideDataBar(){
-  $('#databarFrame').attr('visibility', 'hidden')
+  $('#databarFrame').hide()
 }
 
 

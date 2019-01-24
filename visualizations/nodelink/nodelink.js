@@ -766,19 +766,22 @@ window.onmessage = function(e){
     }else{
         activeMeasures.push(e.data.measure)
     }
-    if(activeMeasures.indexOf("Connected Nodes") > -1){
-        showConnectedNodesGraph()
+    if(activeMeasures.indexOf("Data Bar") > -1){
+        hideDataBar()
     }
-    if(activeMeasures.indexOf("Edges") > -1){
-        showEdgesGraph()
-    }
-    if(activeMeasures.indexOf("Density") > -1){
-        showDensityGraph()
-    }
-    if(activeMeasures.indexOf("Volatility") > -1){
-        volatilityMeasureEnabled = true;
-        updateNodes();
-    }
+    // if(activeMeasures.indexOf("Connected Nodes") > -1){
+    //     showConnectedNodesGraph()
+    // }
+    // if(activeMeasures.indexOf("Edges") > -1){
+    //     showEdgesGraph()
+    // }
+    // if(activeMeasures.indexOf("Density") > -1){
+    //     showDensityGraph()
+    // }
+    // if(activeMeasures.indexOf("Volatility") > -1){
+    //     volatilityMeasureEnabled = true;
+    //     updateNodes();
+    // }
     alert(activeMeasures)
 };
 
@@ -847,6 +850,10 @@ while(i < dgraph.matrix.length){
   i+=1
 }
 console.log(lengthsOfMatrixRows)
+
+function hideDataBar(){
+  $('#databarFrame').attr('visibility', 'hidden')
+}
 
 
 function showConnectedNodesGraph(){

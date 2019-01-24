@@ -56,11 +56,11 @@ function measureCheckboxChange(id){
 
 
 function updateMeasureList() {
-    var measures = ['Connected Nodes', 'Edges', 'Clusters', 'Density', 'Connected Components', 'Diameter', 'Centrality', 'Volatility']
+    var measures = ['Data Bar', 'Volatility']
     var title = d3.select('#title_measure');
     title.html('Measure Selections' + ' (' + measures.length + ')');
 
-    if(document.getElementById("div_measure").childElementCount <= 2){
+    if(1){
 
       d3.select('#div_measure')
           .selectAll('.selectionDiv_measure')

@@ -171,11 +171,12 @@ function drawLineGraph(points, circleColor, id, title, min, max){
   var yScale = d3.scale.linear()
   	        .domain([min, max])
             .range([100, 0]);
+  //yScale.nice(5); <- Gives best labels, but don't know how to scale chart itself
 
   var yAxis = d3.svg.axis()
             .orient("left")
             .scale(yScale)
-            .ticks(3);
+            .ticks(5)
 
   var yAxisLabel = next.append("g")
       .attr("transform", function(d) { return "translate(30, 20)"; })

@@ -49,6 +49,69 @@ for(i=0; i<dgraph.timeArrays.links.length; i++){
     //Dont think this works because it only shows when new nodes are added, not when they're removedi
 }
 
+
+// Build a datastructure mapping nodes to each nodepair at each timestep
+console.log("Preloaded volatility data structure")
+nodesToActiveNodePairs = {};
+console.log(dgraph)
+
+
+//Get all nodes
+for(i=0; i<dgraph.nodeArrays.length; i++){
+  nodesToActiveNodePairs[i] = new Array(60).fill( null );
+}
+console.log("nodesToActiveNodePairs")
+console.log(nodesToActiveNodePairs)
+
+// Map every nodepair to nodes
+nodePairToNodes = {};
+for(i=0; i<dgraph.nodePairArrays.id.length; i++){
+  nodePairToNodes[i] = [];
+}
+for(i=0; i<dgraph.nodePairArrays.source.length; i++){
+  nodePairToNodes[i].push(dgraph.nodePairArrays.source[i])
+  nodePairToNodes[i].push(dgraph.nodePairArrays.target[i])
+}
+console.log("nodePairToNodes")
+console.log(nodePairToNodes)
+
+//Map every link to nodepair
+//getNodePairFromLink
+
+//time -> NodePairs
+timeToNodePairs = {};
+for(time=0; time<dgraph.timeArrays.links.length; time++){
+  timeToNodePairs[time] = new Set([])
+  for(j=0; j<dgraph.timeArrays.links[time].length; j++){
+    timeToNodePairs[time].add(getNodePairFromLink(dgraph, dgraph.timeArrays.links[time][j]))
+  }
+}
+console.log("timeToNodePairs")
+console.log(timeToNodePairs)
+
+//Fill in the values into nodesToActiveNodePairs
+for(var time in timeToNodePairs){
+  for (var it = timeToNodePairs[time].values(), nodePair= null; nodePair=it.next().value; ) {
+    node1 = nodePairToNodes[nodePair][0]
+    node2 = nodePairToNodes[nodePair][1]
+    if(nodesToActiveNodePairs[node1][time]){
+      nodesToActiveNodePairs[node1][time].push(nodePair)
+    }else{
+      nodesToActiveNodePairs[node1][time] = [nodePair]
+    }
+
+    if(nodesToActiveNodePairs[node2][time]){
+      nodesToActiveNodePairs[node2][time].push(nodePair)
+    }else{
+      nodesToActiveNodePairs[node2][time] = [nodePair]
+    }
+  }
+}
+console.log("nodesToActiveNodePairs")
+console.log(nodesToActiveNodePairs)
+
+
+
 Array.prototype.stanDeviate = function(){
    var i,j,total = 0, mean = 0, diffSqredArr = [];
    for(i=0;i<this.length;i+=1){
@@ -406,46 +469,40 @@ function getNodePairFromLink(g, link){
   return -1
 }
 function getNodeVolatility(n) {
-    console.log("Calculating volatility")
-    console.log(window.document)
 
-    //console.log(n.g.timeArrays.links)
-    //console.log(n.links()._elements)
-    edgesConnectedAtEachTime = {}
-    multiplier = 16
-    console.log("vol here:")
-    for(var i=0;i<n.g.nodePairArrays.length; i++){
-      edgesConnectedAtEachTime[i] = []
-    }
-    console.log(edgesConnectedAtEachTime)
-    for(var i=time_start._id; i < time_end._id; i++){
-      for(var j=0; j<n.links()._elements.length; j++){
-        if( n.g.timeArrays.links[i].indexOf(n.links()._elements[j]) > -1 ){
-          console.log("Looking here:")
-          //console.log(n._id)
-          //console.log(n.links()._elements[j])
-          //console.log(getNodePairFromLink(dgraph, n.links()._elements[j]))
-          edgesConnectedAtEachTime[getNodePairFromLink(dgraph, n.links()._elements[j])].push(1)
-        }else{
-          edgesConnectedAtEachTime[getNodePairFromLink(dgraph, n.links()._elements[j])].push(0)
+    console.log("Calculating volatility")
+
+    sliceNodesToActiveNodePairs = nodesToActiveNodePairs[n._id].slice(time_start._id, time_end._id);
+    //console.log(sliceNodesToActiveNodePairs);
+
+    nodePairsToNumberOfTimesTheyOccurred = {}
+
+    for(time=0; time<sliceNodesToActiveNodePairs.length; time++){
+      if(sliceNodesToActiveNodePairs[time]){
+        for(i=0; i<sliceNodesToActiveNodePairs[time].length; i++){
+          nodePair = sliceNodesToActiveNodePairs[time][i]
+          if(nodePairsToNumberOfTimesTheyOccurred[nodePair]){
+            nodePairsToNumberOfTimesTheyOccurred[nodePair] += 1
+          }else{
+            nodePairsToNumberOfTimesTheyOccurred[nodePair] = 1
+          }
         }
       }
     }
-    console.log(edgesConnectedAtEachTime)
-    var edgeLists = Object.values(edgesConnectedAtEachTime)
-    var stdsSum = 0
-    for(var i=0;i<edgeLists.length;i++){
-      //skip empty rows
-      if(edgeLists[i].length != 0){
-        console.log("sum = " + edgeLists[i].reduce(getSum))
-        stdsSum += edgeLists[i].stanDeviate();
-      }
-    }
-    var length = n.links()._elements.length
-    var averageStd = stdsSum/length
-    console.log("result: " + averageStd)
-    return  averageStd * multiplier;
 
+    volatilitySum = 0;
+    for(var nodePair in nodePairsToNumberOfTimesTheyOccurred){
+      occurrences = nodePairsToNumberOfTimesTheyOccurred[nodePair]
+      arrayChunk1 = new Array(occurrences).fill( 1 );
+      arrayChunk2 = new Array(sliceNodesToActiveNodePairs.length-occurrences).fill( 0 );
+      console.log(arrayChunk1.concat(arrayChunk2));
+      volatilitySum += arrayChunk1.concat(arrayChunk2).stanDeviate();
+    }
+    numberOfNodePairs = Object.keys(nodePairsToNumberOfTimesTheyOccurred).length;
+
+    multiplier = 8;
+
+    return volatilitySum/numberOfNodePairs * multiplier;
 }
 function updateLabelVisibility() {
     hiddenLabels = [];

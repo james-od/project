@@ -12926,12 +12926,14 @@ var networkcube;
     function timeRange(startUnix, endUnix, single, propagate) {
         console.log("changing timerange")
         console.log("startUnix " + startUnix)
+        console.log("expected startUnix " + 360828511.72076416)
         console.log("endUnix " + endUnix)
+        console.log("expected endUnix " + 173482455589.12384)
         console.log("single " + single)
         var m = new TimeRangeMessage(startUnix, endUnix);
         if (propagate == undefined)
             propagate = false;
-        if (propagate)
+        if (propagate && startUnix && endUnix)
             distributeMessage(m);
         else
             processMessage(m);

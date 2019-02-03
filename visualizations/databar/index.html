@@ -189,6 +189,7 @@ function drawLineGraph(points, circleColor, id, title, min, max){
 
   var path = chart.append("path")
       .data([pointsLarge])
+      .attr("class", "mainPath")
       .style("stroke", circleColor)
       .style("fill", circleColor)
       .style("fill-opacity", 0.8)
@@ -647,17 +648,22 @@ document.addEventListener('mousemove', function(evt) {
   transition(originalpoints5, points5, graph5, mousePos.x);
 }, false);
 
-document.addEventListener('click', function(evt) {
+function moveTimeBars(evt){
   //can convert to timeArray first and last label
-  initialTime = new Date('1960-12-13T12:00:00+00:00').getTime() / 1000
-  finalTime = new Date('1992-06-03T12:00:00+01:00').getTime() / 1000
-  console.log(initialTime)
-  console.log(finalTime)
+  initialTime = new Date('1960-12-13T12:00:00+00:00').getTime()
+  finalTime = new Date('1992-06-03T12:00:00+01:00').getTime()
+  console.log("initialTime " + initialTime)
+  console.log("finalTime " + finalTime)
   console.log(event.clientX + " " + width)
   clicked_time_point = initialTime + (event.clientX/width * (finalTime - initialTime))
   console.log(clicked_time_point)
-  parent.window.networkcube.timeRange(clicked_time_point *0.95, clicked_time_point*1.05, 1, true)
-}, false);
+  parent.window.networkcube.timeRange(clicked_time_point - 30000000000, clicked_time_point + 30000000000, 1, true)
+}
+
+var classname = document.getElementsByClassName("mainPath")
+for(var i=0; i<classname.length; i++){
+  classname[i].addEventListener('click', moveTimeBars, false);
+}
 
 
 

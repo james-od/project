@@ -296,6 +296,41 @@ function calculateDensity(edges, nodes){
   return ret
 }
 
+
+timeToNodePairs = {};
+for(time=0; time<dgraph.timeArrays.links.length; time++){
+  timeToNodePairs[time] = new Set([])
+  for(j=0; j<dgraph.timeArrays.links[time].length; j++){
+    timeToNodePairs[time].add(getNodePairFromLink(dgraph, dgraph.timeArrays.links[time][j]))
+  }
+}
+
+var globalVolatilities = new Array(60).fill(0);
+//For every times set of nodepairs, look at the previous time's set of NodePairs
+//If any of the nodepairs aren't in the previous set, increment at that time by one
+//Similarly if any of the previous's aren't in the current set.
+function calculateGlobalVolatility(){
+  console.log("calculateGlobalVolatility")
+  console.log(timeToNodePairs)
+  for(i=1; i<60; i++){
+    var currentNodePairs = Array.from(timeToNodePairs[i])
+    var prevNodePairs = Array.from(timeToNodePairs[i-1])
+    for(j=0; j<currentNodePairs.length; j++){
+      if(!timeToNodePairs[i-1].has(currentNodePairs[j])){
+        globalVolatilities[i] += 1
+      }
+    }
+    for(j=0; j<prevNodePairs.length; j++){
+      if(!timeToNodePairs[i].has(prevNodePairs[j])){
+        globalVolatilities[i] += 1
+      }
+    }
+  }
+  console.log(globalVolatilities)
+}
+
+calculateGlobalVolatility();
+
 function getStateOfGrapghAtT(t){
   edges = dgraph.timeArrays.links[t]
   ret_edges = []
@@ -508,14 +543,20 @@ function convertToCoords(x, scale){
   //console.log(ret)
   return ret
 }
+
+
+var points6 = convertToCoords(globalVolatilities, 100);
 var points5 = convertToCoords(allConnectedComponents, 100);
 var points4 = convertToCoords(allDiameters, 100);
 var points3 = convertToCoords(calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint), 100);
 var points2 = convertToCoords(numberOfLinksAtEachTimeJump, 100);
 var points1 = convertToCoords(nodeSetLengthAtEachPoint, 100);
 
+var originalpoints6 = globalVolatilities
+max = Math.max.apply(Math, originalpoints6)
+graph6 = drawLineGraph(globalVolatilities, "orange", 3, "Global Volatility", 0, max)
+
 var originalpoints5 = allConnectedComponents
-console.log("CHECKIT")
 max = Math.max.apply(Math, originalpoints5)
 graph5 = drawLineGraph(allConnectedComponents, "brown", 3, "Connected Components", 0, max)
 
@@ -646,6 +687,7 @@ document.addEventListener('mousemove', function(evt) {
   transition(originalpoints3, points3, graph3, mousePos.x);
   transition(originalpoints4, points4, graph4, mousePos.x);
   transition(originalpoints5, points5, graph5, mousePos.x);
+  transition(originalpoints6, points6, graph6, mousePos.x);
 }, false);
 
 function moveTimeBars(evt){

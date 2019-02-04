@@ -495,13 +495,17 @@ function getNodeVolatility(n) {
       occurrences = nodePairsToNumberOfTimesTheyOccurred[nodePair]
       arrayChunk1 = new Array(occurrences).fill( 1 );
       arrayChunk2 = new Array(sliceNodesToActiveNodePairs.length-occurrences).fill( 0 );
-      console.log(arrayChunk1.concat(arrayChunk2));
       volatilitySum += arrayChunk1.concat(arrayChunk2).stanDeviate();
     }
     numberOfNodePairs = Object.keys(nodePairsToNumberOfTimesTheyOccurred).length;
 
     multiplier = 8;
 
+    console.log("volSum " + volatilitySum)
+    console.log("numberOfNodePairs " + numberOfNodePairs)
+    if(numberOfNodePairs <= 0 || volatilitySum <= 0){
+      return 0;
+    }
     return volatilitySum/numberOfNodePairs * multiplier;
 }
 function updateLabelVisibility() {

@@ -27,6 +27,7 @@ var nodes = dgraph.nodes().toArray();
 var volatilityMeasureEnabled = false;
 var redundancyMeasureEnabled = false;
 var activationMeasureEnabled = false;
+var centralityMeasureEnabled = false;
 
 var nodesOrderedByDegree = dgraph.nodes().toArray().sort(function (n1, n2) { return n2.neighbors().length - n1.neighbors().length; });
 var nodePairs = dgraph.nodePairs();
@@ -681,6 +682,27 @@ function mouseOutNode(n) {
 function measureChangedHandler(m) {
     console.log("Measure changed handler yay")
     console.log(m)
+    activationMeasureEnabled = false;
+    redundancyMeasureEnabled = false;
+    volatilityMeasureEnabled = false;
+    centralityMeasureEnabled = false;
+    if(m.measure == 'Activation'){
+        activationMeasureEnabled = true;
+    }
+   
+    if(m.measure == 'Redundancy'){
+        redundancyMeasureEnabled = true
+    }
+   
+    if(m.measure == 'Volatility'){
+        volatilityMeasureEnabled = true
+    }
+   
+    if(m.measure == 'Centrality'){
+        centralityMeasureEnabled = true
+    }
+    updateLinks();
+    updateNodes();
 }
 
 function timeChangedHandler(m) {
@@ -712,16 +734,20 @@ function updateNodeSize() {
         .attr('r', function (n) { return getNodeRadius(n); });
 }
 function updateNodes() {
+ // if(volatilityMeasureEnabled){
+ //   volatilitySpikes
+ //       .attr('d', function(d) {
+ //         return getPathDataForVolatility(0.5, d)
+ //       })
+ //       .style("fill", "#333333")
+ //       .style("visibility", "visible");
+ // }else{
+ //   volatilitySpikes
+ //       .style("visibility", "hidden");
+ // }
   if(volatilityMeasureEnabled){
-    volatilitySpikes
-        .attr('d', function(d) {
-          return getPathDataForVolatility(0.5, d)
-        })
-        .style("fill", "#333333")
-        .style("visibility", "visible");
-  }else{
-    volatilitySpikes
-        .style("visibility", "hidden");
+    visualNodes
+        .attr('r', function (n) { return (2 * Math.log(getNodeVolatility(n))) + 1; });
   }
   if(redundancyMeasureEnabled){
     visualNodes
@@ -735,6 +761,9 @@ function updateNodes() {
         .attr('r', function (n) { return (2 * Math.log(getNodeActivation(n))) + 1; });
   }else{
     console.log("")
+  }if(centralityMeasureEnabled){
+      visualNodes
+        .attr('r', function (n) { return (2 * Math.log(getNumberOfNodeEdges(n))) + 1; });
   }
 
     visualNodes

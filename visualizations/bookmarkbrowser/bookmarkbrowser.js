@@ -91,7 +91,7 @@ function updateMeasureList() {
           })
           .append('br')
 
-      var data = ["Volatility", "Redundancy", "Activation", "Centrality"];
+      var data = ["Centrality", "Volatility", "Redundancy", "Activation"];
 
       measureGs.each(function(d){
         if(d == 'Visualised local measure'){

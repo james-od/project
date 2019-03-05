@@ -570,7 +570,7 @@ function getNodeVolatility(n) {
     console.log("volSum " + volatilitySum)
     console.log("numberOfNodePairs " + numberOfNodePairs)
     if(numberOfNodePairs <= 0 || volatilitySum <= 0){
-      return 0;
+      return 1;
     }
     return volatilitySum/numberOfNodePairs * multiplier;
 }
@@ -650,7 +650,7 @@ function getNumberOfNodeEdges(n){
   //time_start
   //time_end
   allLinks = getLinksFromNode(n)
-  numberOfLinksInTimeFrame = 0
+  numberOfLinksInTimeFrame = 1
   for(i=time_start._id; i<time_end._id; i++){
     for(j=0;j<allLinks.length;j++){
       if(n.g.timeArrays.links[i].indexOf(allLinks[j]) > -1){

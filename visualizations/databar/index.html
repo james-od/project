@@ -132,7 +132,7 @@ function timeChangedHandlerDatabar(m) {
     console.log(difference)
     line1Percentage = Math.abs(initialTime - m.startUnix) / difference;
     line2Percentage = Math.abs(initialTime - m.endUnix) / difference;
-   
+
     d3.selectAll("rect").filter(".vertLine1").attr("transform", function(d) {
         return "translate(" + (line1Percentage * width) + "," + 0 + ")"
     });
@@ -141,7 +141,7 @@ function timeChangedHandlerDatabar(m) {
     });
 }
 
-parent.window.networkcube.addEventListener('tmeRange', timeChangedHandlerDatabar, false);
+//parent.window.networkcube.addEventListener('timeRange', timeChangedHandlerDatabar, false);
 
 
 function drawLineGraph(points, circleColor, id, title, min, max){

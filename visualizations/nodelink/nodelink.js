@@ -25,6 +25,8 @@ var time_start = times[0];
 var time_end = times[times.length - 1];
 var nodes = dgraph.nodes().toArray();
 var volatilityMeasureEnabled = false;
+var redundancyMeasureEnabled = false;
+var activationMeasureEnabled = false;
 
 var nodesOrderedByDegree = dgraph.nodes().toArray().sort(function (n1, n2) { return n2.neighbors().length - n1.neighbors().length; });
 var nodePairs = dgraph.nodePairs();
@@ -58,7 +60,7 @@ console.log(dgraph)
 
 //Get all nodes
 for(i=0; i<dgraph.nodeArrays.length; i++){
-  nodesToActiveNodePairs[i] = new Array(60).fill( null );
+  nodesToActiveNodePairs[i] = new Array(time_end._id).fill( null );
 }
 console.log("nodesToActiveNodePairs")
 console.log(nodesToActiveNodePairs)
@@ -468,6 +470,69 @@ function getNodePairFromLink(g, link){
   }
   return -1
 }
+
+function flatten(arr) {
+  return arr.reduce(function (flat, toFlatten) {
+    return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
+  }, []);
+}
+
+function getNodeRedundancy(n){
+  ret = 1; // Don't want zero-sized circles
+  console.log("Calculating Redundancy")
+  previouslySeenNodePairs = nodesToActiveNodePairs[n._id].slice(0, time_start._id)
+  currentNodePairs = nodesToActiveNodePairs[n._id].slice(time_start._id, time_end._id)
+
+  var mergedPrevious = flatten(previouslySeenNodePairs);
+  var filteredPrevious = mergedPrevious.filter(function (el) {
+    return el != null;
+  });
+  var mergedCurrent = flatten(currentNodePairs);
+  var filteredCurrent = mergedCurrent.filter(function (el) {
+    return el != null;
+  });
+  var previousSeenSet = new Set(filteredPrevious)
+  var currentSet = new Set(filteredCurrent)
+  for(val of previousSeenSet){
+    if(currentSet.has(val)){
+      ret += 1;
+    }
+  }
+  console.log(previousSeenSet)
+  console.log(currentSet)
+  console.log("Redundancy IS " + ret)
+  return ret;
+}
+
+function getNodeActivation(n){
+  console.log("Calculating Activation")
+  ret = 1; // Don't want zero-sized circles
+  console.log("Calculating Redundancy")
+  previouslySeenNodePairs = nodesToActiveNodePairs[n._id].slice(0, time_start._id)
+  currentNodePairs = nodesToActiveNodePairs[n._id].slice(time_start._id, time_end._id)
+
+  var mergedPrevious = flatten(previouslySeenNodePairs);
+  var filteredPrevious = mergedPrevious.filter(function (el) {
+    return el != null;
+  });
+  var mergedCurrent = flatten(currentNodePairs);
+  var filteredCurrent = mergedCurrent.filter(function (el) {
+    return el != null;
+  });
+  var previousSeenSet = new Set(filteredPrevious)
+  var currentSet = new Set(filteredCurrent)
+  for(val of currentSet){
+    if(!previousSeenSet.has(val)){
+      ret += 1;
+    }
+  }
+  console.log(previousSeenSet)
+  console.log(currentSet)
+  console.log("Redundancy IS " + ret)
+  return ret;
+}
+
+
 function getNodeVolatility(n) {
 
     console.log("Calculating volatility")
@@ -615,6 +680,7 @@ function mouseOutNode(n) {
 
 function measureChangedHandler(m) {
     console.log("Measure changed handler yay")
+    console.log(m)
 }
 
 function timeChangedHandler(m) {
@@ -657,28 +723,23 @@ function updateNodes() {
     volatilitySpikes
         .style("visibility", "hidden");
   }
+  if(redundancyMeasureEnabled){
+    visualNodes
+        .attr('r', function (n) { return (2 * Math.log(getNodeRedundancy(n))) + 1; });
+    console.log("")
+  }else{
+    console.log("")
+  }
+  if(activationMeasureEnabled){
+    visualNodes
+        .attr('r', function (n) { return (2 * Math.log(getNodeActivation(n))) + 1; });
+  }else{
+    console.log("")
+  }
 
     visualNodes
         .style('fill', function (d) {
         var color;
-        // if(volatilityMeasureEnabled){
-        //     volatility = getNodeVolatility(d)
-        //     if(volatility > 2.0){
-        //       color = "#f13030";
-        //     }
-        //     else if(volatility > 1.5){
-        //       color = "#ff851b"
-        //     }
-        //     else if(volatility > 1.0){
-        //       color = "#ffdc00"
-        //     }
-        // }
-        // else if (d.isHighlighted()) {
-        //     color = COLOR_HIGHLIGHT;
-        // }
-        // else {
-        //     color = networkcube.getPriorityColor(d);
-        // }
         if (!color){
             color = "#333333";
         }

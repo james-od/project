@@ -56,11 +56,11 @@ function measureCheckboxChange(id){
 
 
 function updateMeasureList() {
-    var measures = ['Data Bar', 'Volatility']
+    var measures = ['Data Bar', 'Volatility', 'Visualised local measure']
     var title = d3.select('#title_measure');
     title.html('Measure Selections' + ' (' + measures.length + ')');
 
-    if(document.getElementById("div_measure").childElementCount <= 2){
+    if(document.getElementById("div_measure").childElementCount <= 3){
 
       d3.select('#div_measure')
           .selectAll('.selectionDiv_measure')
@@ -90,18 +90,45 @@ function updateMeasureList() {
               return d;
           })
           .append('br')
-      measureGs.append('input')
-          .attr('type', 'checkbox')
-          .attr('x', 0)
-          .attr('y', 0)
-          .attr('width', RECT_SIZE)
-          .attr('height', RECT_SIZE)
-          .attr('id', function (d) { return "checkbox-" + d.toLowerCase().replace(/\s/g, ''); })
-          .on('click', function (d) {
-            networkcube.measureChange(d);
-          })
-          .style('fill', function (d) { return "red"; });
+
+      var data = ["Volatility", "Redundancy", "Activation", "Centrality"];
+
+      measureGs.each(function(d){
+        if(d == 'Visualised local measure'){
+          var select = d3.select(this).append('select')
+            .attr('class', 'select')
+            .attr('x', 0)
+            .attr('y', 0)
+            .on('change', newLocalMeasureSelected)
+
+            var options = select
+              .selectAll('option')
+              .data(data).enter()
+              .append('option')
+                .text(function (d) { return d; });
+
+        }else{
+          d3.select(this).append('input')
+              .attr('type', 'checkbox')
+              .attr('x', 0)
+              .attr('y', 0)
+              .attr('width', RECT_SIZE)
+              .attr('height', RECT_SIZE)
+              .attr('id', "checkbox-" + d.toLowerCase().replace(/\s/g, ''))
+              .on('click', networkcube.measureChange(d))
+              .style('fill', "red");
+        }
+
+      })
+
+      function newLocalMeasureSelected(){
+        selectValue = d3.select('select').property('value')
+        console.log("NEW LOCAL MEASURE " + selectValue);
+        networkcube.measureChange(selectValue)
       }
+
+      }
+
 }
 
 function updateList(type, name) {

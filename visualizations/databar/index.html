@@ -115,8 +115,34 @@ $(".slides").sortable({
     },
 });
 
-width = window.innerWidth -30
+width = window.innerWidth - 80;
 //height =
+
+console.log("Add timerange event listener")
+
+function timeChangedHandlerDatabar(m) {
+    initialTime = new Date('1960-12-13T12:00:00+00:00').getTime()
+    finalTime = new Date('1992-06-03T12:00:00+01:00').getTime()
+    console.log('time changed - DATABAR');
+    console.log(m.startUnix);
+    console.log(m.endUnix);
+    console.log(initialTime);
+    console.log(finalTime);
+    difference = (initialTime > finalTime)? initialTime-finalTime : finalTime-initialTime;
+    console.log(difference)
+    line1Percentage = Math.abs(initialTime - m.startUnix) / difference;
+    line2Percentage = Math.abs(initialTime - m.endUnix) / difference;
+   
+    d3.selectAll("rect").filter(".vertLine1").attr("transform", function(d) {
+        return "translate(" + (line1Percentage * width) + "," + 0 + ")"
+    });
+    d3.selectAll("rect").filter(".vertLine2").attr("transform", function(d) {
+        return "translate(" + (line2Percentage * width) + "," + 0 + ")"
+    });
+}
+
+parent.window.networkcube.addEventListener('tmeRange', timeChangedHandlerDatabar, false);
+
 
 function drawLineGraph(points, circleColor, id, title, min, max){
 
@@ -124,7 +150,7 @@ function drawLineGraph(points, circleColor, id, title, min, max){
   pointsLarge = convertToCoords(points, 100);
 
   var svg = d3.select(".slides")
-      .append("div");
+      .append("div")
 
 
   var titlebar = svg.append("li")
@@ -136,7 +162,7 @@ function drawLineGraph(points, circleColor, id, title, min, max){
 
   var next1 = titlebar.append("svg")
       .attr("class", "slide content")
-      .attr("width", width -30)
+      .attr("width", width + 80)
       .attr("height", "30px");
 
   var chart1 = next1.append("g")
@@ -165,7 +191,7 @@ function drawLineGraph(points, circleColor, id, title, min, max){
 
   var next = svg.append("li").append("svg")
       .attr("class", "slide content")
-      .attr("width", width -30)
+      .attr("width", width + 80)
       .attr("height", "130px");
 
   var yScale = d3.scale.linear()
@@ -218,6 +244,29 @@ function drawLineGraph(points, circleColor, id, title, min, max){
     .attr("y2", 100)
     .attr("stroke-dasharray", function(d) { return (d + 1) + ",5"});
 
+
+  var vertLine1Group = chart.append("g")
+
+  var vertLine1 = vertLine1Group.append("rect")
+      .attr("class", "vertLine1")
+      .attr("width", 2)
+      .attr("height", 100)
+      .style("fill", "grey")
+      .style("stroke", "grey")
+      .style("opacity", 0.9)
+      .attr("transform", "translate(" + pointsLarge[0] + ")");
+
+  var vertLine2Group = chart.append("g")
+
+  var vertLine2 = vertLine1Group.append("rect")
+      .attr("class", "vertLine2")
+      .attr("width", 2)
+      .attr("height", 100)
+      .style("fill", "grey")
+      .style("stroke", "grey")
+      .style("opacity", 0.9)
+      .attr("transform", "translate(" + pointsLarge[0] + ")");
+
   var circleGroup = chart.append("g")
 
   var circle = circleGroup.append("circle")
@@ -243,6 +292,8 @@ function drawLineGraph(points, circleColor, id, title, min, max){
 }
 
 var dgraph = networkcube.getDynamicGraph();
+var timeSteps = dgraph._times.length;
+console.log("timeSteps " + timeSteps);
 
 var labels = dgraph.timeArrays.label
 int_dates = labels.map(Date.parse)
@@ -305,14 +356,14 @@ for(time=0; time<dgraph.timeArrays.links.length; time++){
   }
 }
 
-var globalVolatilities = new Array(60).fill(0);
+var globalVolatilities = new Array(timeSteps).fill(0);
 //For every times set of nodepairs, look at the previous time's set of NodePairs
 //If any of the nodepairs aren't in the previous set, increment at that time by one
 //Similarly if any of the previous's aren't in the current set.
 function calculateGlobalVolatility(){
   console.log("calculateGlobalVolatility")
   console.log(timeToNodePairs)
-  for(i=1; i<60; i++){
+  for(i=1; i<timeSteps; i++){
     var currentNodePairs = Array.from(timeToNodePairs[i])
     var prevNodePairs = Array.from(timeToNodePairs[i-1])
     for(j=0; j<currentNodePairs.length; j++){
@@ -452,7 +503,7 @@ function diameterOfGraphAtT(t){
 }
 
 allDiameters = []
-for(j=0;j<60;j++){
+for(j=0;j<timeSteps;j++){
   allDiameters.push(diameterOfGraphAtT(j))
 }
 console.log(allDiameters)
@@ -518,7 +569,7 @@ function getNumberOfConnectedComponentsAtT(t){
 //getNumberOfConnectedComponentsAtT(15) //2
 //getNumberOfConnectedComponentsAtT(1) //1
 allConnectedComponents = []
-for(j=0;j<60;j++){
+for(j=0;j<timeSteps;j++){
   allConnectedComponents.push(getNumberOfConnectedComponentsAtT(j))
 }
 console.log(allConnectedComponents)
@@ -540,7 +591,8 @@ function convertToCoords(x, scale){
   }
   ret.push([len*step, scale])
   ret.push([0,scale])
-  //console.log(ret)
+  console.log("HERE ARE THE POINTS")
+  console.log(ret)
   return ret
 }
 
@@ -692,8 +744,10 @@ document.addEventListener('mousemove', function(evt) {
 
 function moveTimeBars(evt){
   //can convert to timeArray first and last label
-  initialTime = new Date('1960-12-13T12:00:00+00:00').getTime()
-  finalTime = new Date('1992-06-03T12:00:00+01:00').getTime()
+  firstTimeString = dgraph.timeArrays.label[0]
+  lastTimeString = dgraph.timeArrays.label[timeSteps]
+  initialTime = new Date(firstTimeString).getTime()
+  finalTime = new Date(lastTimeString).getTime()
   console.log("initialTime " + initialTime)
   console.log("finalTime " + finalTime)
   console.log(event.clientX + " " + width)

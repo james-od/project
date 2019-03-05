@@ -178,7 +178,7 @@ var timeSvg = d3.select('#timelineDiv')
 if (dgraph.times().size() > 1) {
     var timeSlider = new TimeSlider(dgraph, width - 90);
     timeSlider.appendTo(timeSvg);
-    networkcube.addEventListener('timeRange', timeChangedHandler);
+    networkcube.addEventListener('timeRange', timeChangedHandler, false);
     networkcube.addEventListener('measureChange', measureChangedHandler);
 }
 
@@ -618,7 +618,7 @@ function measureChangedHandler(m) {
 }
 
 function timeChangedHandler(m) {
-    console.log("Time changed")
+    console.log("Time changed - nodelink")
     time_start = times[0];
     time_end = times[times.length - 1];
     for (var i = 0; i < times.length; i++) {

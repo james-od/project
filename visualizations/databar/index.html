@@ -141,20 +141,8 @@ function timeChangedHandlerDatabar(m) {
     });
 }
 
-$(document).on("keypress", function (e) {
-    console.log(e.which);
-    console.log("databar")
-    if(e.which == 108){
-        console.log("VERTLINES - L")
-        enableVertLines()
-    }
-});
 
-
-console.log("EnableVertLines")
-function enableVertLines(){
-  parent.window.networkcube.addEventListener('timeRange', timeChangedHandlerDatabar, false);
-}
+//parent.window.networkcube.addEventListener('timeRange', timeChangedHandlerDatabar);
 
 function drawLineGraph(points, circleColor, id, title, min, max){
 

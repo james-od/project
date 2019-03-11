@@ -228,6 +228,7 @@ var linkLayer = svg.append('g');
 var nodeLayer = svg.append('g');
 var labelLayer = svg.append('g');
 var visualNodes;
+var backingNodes;
 var nodeLabels;
 var nodeLabelOutlines;
 var visualLinks;
@@ -363,7 +364,29 @@ function init() {
             }
         }
         networkcube.selection('add', { nodes: [d] });
-    });
+    })
+
+    backingNodes = nodeLayer.selectAll('nodes')
+        .data(nodes)
+        .enter()
+        .append('circle')
+        .attr('r', function (n) { return 0; })
+        .attr('class', 'nodes')
+        .style('fill', "black")
+        .style('fill-opacity', 0.2)
+        .on('mouseover', mouseOverNode)
+        .on('mouseout', mouseOutNode)
+        .on('click', function (d) {
+        var selections = d.getSelections();
+        var currentSelection = _this.dgraph.getCurrentSelection();
+        for (var j = 0; j < selections.length; j++) {
+            if (selections[j] == currentSelection) {
+                networkcube.selection('remove', { nodes: [d] });
+                return;
+            }
+        }
+        networkcube.selection('add', { nodes: [d] });
+    })
 
     // Create a path element and set its d attribute
     volatilitySpikes = nodeLayer.selectAll('nodes')
@@ -421,6 +444,9 @@ function init() {
     updateLayout();
 }
 function updateLayout() {
+    backingNodes
+        .attr('cx', function (d, i) { return d.x; })
+        .attr('cy', function (d, i) { return d.y; });
     visualNodes
         .attr('cx', function (d, i) { return d.x; })
         .attr('cy', function (d, i) { return d.y; });
@@ -689,15 +715,15 @@ function measureChangedHandler(m) {
     if(m.measure == 'Activation'){
         activationMeasureEnabled = true;
     }
-   
+
     if(m.measure == 'Redundancy'){
         redundancyMeasureEnabled = true
     }
-   
+
     if(m.measure == 'Volatility'){
         volatilityMeasureEnabled = true
     }
-   
+
     if(m.measure == 'Centrality'){
         centralityMeasureEnabled = true
     }
@@ -746,24 +772,20 @@ function updateNodes() {
  //       .style("visibility", "hidden");
  // }
   if(volatilityMeasureEnabled){
-    visualNodes
-        .attr('r', function (n) { return (2 * Math.log(getNodeVolatility(n))) + 1; });
+    visualNodes.attr('r', function (n) { return (2 * Math.log(getNodeVolatility(n)))});
+    backingNodes.attr('r', function (n) { return (4 * Math.log(getNodeVolatility(n))) + 1; });
   }
   if(redundancyMeasureEnabled){
-    visualNodes
-        .attr('r', function (n) { return (2 * Math.log(getNodeRedundancy(n))) + 1; });
-    console.log("")
-  }else{
-    console.log("")
+    visualNodes.attr('r', function (n) { return (2 * Math.log(getNodeRedundancy(n))) + 1; });
+    backingNodes.attr('r', function (n) { return (4 * Math.log(getNodeVolatility(n))) + 1; });
   }
   if(activationMeasureEnabled){
-    visualNodes
-        .attr('r', function (n) { return (2 * Math.log(getNodeActivation(n))) + 1; });
-  }else{
-    console.log("")
-  }if(centralityMeasureEnabled){
-      visualNodes
-        .attr('r', function (n) { return (2 * Math.log(getNumberOfNodeEdges(n))) + 1; });
+    visualNodes.attr('r', function (n) { return (2 * Math.log(getNodeActivation(n))) + 1; });
+    backingNodes.attr('r', function (n) { return (4 * Math.log(getNodeVolatility(n))) + 1; });
+  }
+  if(centralityMeasureEnabled){
+      visualNodes.attr('r', function (n) { return (2 * Math.log(getNumberOfNodeEdges(n))) + 1; });
+      backingNodes.attr('r', function (n) { return (4 * Math.log(getNodeVolatility(n))) + 1; });
   }
 
     visualNodes
@@ -805,6 +827,7 @@ function updateNodes() {
         || hiddenLabels.indexOf(e) == -1
         || (LABELING_STRATEGY == 3 && e.neighbors().highlighted().length > 0)
         ? 'visible' : 'hidden'; });
+
 }
 
 function updateLinks() {

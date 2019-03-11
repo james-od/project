@@ -141,8 +141,8 @@ function timeChangedHandlerDatabar(m) {
     });
 }
 
-
 //parent.window.networkcube.addEventListener('timeRange', timeChangedHandlerDatabar);
+
 
 function drawLineGraph(points, circleColor, id, title, min, max){
 
@@ -218,7 +218,7 @@ function drawLineGraph(points, circleColor, id, title, min, max){
       .attr("class", "mainPath")
       .style("stroke", circleColor)
       .style("fill", circleColor)
-      .style("fill-opacity", 0.8)
+      .style("fill-opacity", 0.4)
       .style("float", "right")
       .attr("d", d3.svg.line()
       .tension(0) // Catmull–Rom
@@ -227,9 +227,10 @@ function drawLineGraph(points, circleColor, id, title, min, max){
   chart.selectAll(".point")
     .data(pointsLarge)
     .enter().append("circle")
-    .attr("r", 2)
+    .attr("r", 1)
     .style("fill", circleColor)
     .style("stroke", circleColor)
+    .style("opacity", 0.5)
     .attr("transform", function(d) { return "translate(" + d + ")"; })
     .on("click", function(d) {
       console.log("Clicked circle " + d)
@@ -242,10 +243,10 @@ function drawLineGraph(points, circleColor, id, title, min, max){
     .attr("x2", function(d) { return d[0] })
     .attr("y1", 100)
     .attr("y2", function(d) { console.log("YURT" + d[1]); return d[1] })
-    .style("fill", "black")
-    .style("stroke", "black")
-    .style("stroke-width", 2)
-    .style("opacity", 0.15)
+    .style("fill", circleColor)
+    .style("stroke", circleColor)
+    .style("stroke-width", 4)
+    .style("opacity", 0.6)
   chart.selectAll(".line")
     .data(pointsLarge)
     .enter().append("line")
@@ -395,6 +396,43 @@ function calculateGlobalVolatility(){
 }
 
 calculateGlobalVolatility();
+
+
+var globalActivations = new Array(timeSteps).fill(0);
+function calculateGlobalActivations(){
+  seenNodePairs = new Set();
+  for(i=0; i<Object.keys(timeToNodePairs).length; i++){
+    globalActivations[i] = seenNodePairs.size
+
+    it = timeToNodePairs[i].values();
+    for (var nodePair= it.value; nodePair=it.next().value;) {
+      seenNodePairs.add(nodePair)
+      globalActivations[i] += 1;
+    }
+  }
+  console.log("calculateGlobalActivations")
+  //console.log(Array.from(seenNodePairs).sort());
+  console.log(globalActivations)
+}
+calculateGlobalActivations();
+
+var globalRedundancies = new Array(timeSteps).fill(0);
+function calculateGlobalRedundancies(){
+  seenNodePairs = new Set();
+  for(i=0; i<Object.keys(timeToNodePairs).length; i++){
+    globalActivations[i] = seenNodePairs.size
+
+    it = timeToNodePairs[i].values();
+    for (var nodePair= it.value; nodePair=it.next().value;) {
+      seenNodePairs.add(nodePair)
+      globalActivations[i] += 1;
+    }
+  }
+  console.log("calculateGlobalActivations")
+  //console.log(Array.from(seenNodePairs).sort());
+  console.log(globalRedundancies)
+}
+calculateGlobalRedundancies();
 
 function getStateOfGrapghAtT(t){
   edges = dgraph.timeArrays.links[t]
@@ -610,7 +648,8 @@ function convertToCoords(x, scale){
   return ret
 }
 
-
+var points8 = convertToCoords(globalRedundancies, 100);
+var points7 = convertToCoords(globalActivations, 100);
 var points6 = convertToCoords(globalVolatilities, 100);
 var points5 = convertToCoords(allConnectedComponents, 100);
 var points4 = convertToCoords(allDiameters, 100);
@@ -641,6 +680,14 @@ graph2 = drawLineGraph(numberOfLinksAtEachTimeJump, "blue", 2, "Links", 0, max)
 var originalpoints1 = nodeSetLengthAtEachPoint
 max = Math.max.apply(Math, originalpoints1)
 graph1 = drawLineGraph(nodeSetLengthAtEachPoint, "red", 1, "Nodes", 0, max)
+
+var originalpoints7 = globalActivations
+max = Math.max.apply(Math, originalpoints7)
+graph7 = drawLineGraph(globalActivations, "maroon", 3, "Global Activation", 0, max)
+
+var originalpoints8 = globalRedundancies
+max = Math.max.apply(Math, originalpoints8)
+graph8 = drawLineGraph(globalRedundancies, "turquoise", 3, "Global Redundancy", 0, max)
 
 
 allGraphs = [graph1, graph2]

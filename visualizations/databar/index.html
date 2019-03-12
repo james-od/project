@@ -115,7 +115,6 @@ $(".slides").sortable({
     },
 });
 
-alert("hello");
 width = window.innerWidth - 80;
 //height =
 
@@ -348,28 +347,30 @@ for(i=0;i<normalised_gaps_in_days.length;i++){
 console.log(normalised_gaps_X_coords)
 
 
-numberOfLinksAtEachTimeJump = [];
-timesForLinks = dgraph.timeArrays.label;
-for(i=0; i < dgraph.timeArrays.links.length; i++){
-    numberOfLinksAtEachTimeJump.push(dgraph.timeArrays.links[i].length);
-}
-function calculateDensity(edges, nodes){
-  ret = []
-  i = 0
-  while(i < edges.length){
-    ret.push( (edges[i]) / (nodes[i] * (nodes[i] - 1)) )
-    i += 1
-  }
-  return ret
-}
-
-
 timeToNodePairs = {};
 for(time=0; time<dgraph.timeArrays.links.length; time++){
   timeToNodePairs[time] = new Set([])
   for(j=0; j<dgraph.timeArrays.links[time].length; j++){
     timeToNodePairs[time].add(getNodePairFromLink(dgraph, dgraph.timeArrays.links[time][j]))
   }
+}
+
+numberOfNodePairsAtEachTimeJump = [];
+timesForLinks = dgraph.timeArrays.label;
+for(i=0; i < dgraph._times.length; i++){
+    console.log(timeToNodePairs)
+    console.log(i)
+    numberOfNodePairsAtEachTimeJump.push(timeToNodePairs[i].size);
+}
+
+function calculateDensity(edges, nodes){
+  ret = []
+  i = 0
+  while(i < edges.length){
+    ret.push( (edges[i]) / (nodes[i] * (nodes[i] - 1)/2) )
+    i += 1
+  }
+  return ret
 }
 
 var globalVolatilities = new Array(timeSteps).fill(0);
@@ -400,43 +401,28 @@ calculateGlobalVolatility();
 
 
 var globalActivations = new Array(timeSteps).fill(0);
-function calculateGlobalActivations(){
+var globalRedundancies = new Array(timeSteps).fill(0);
+function calculateGlobalActivationsAndRedundancies(){
   seenNodePairs = new Set();
   for(i=0; i<Object.keys(timeToNodePairs).length; i++){
     globalActivations[i] = seenNodePairs.size
 
     it = timeToNodePairs[i].values();
     for (var nodePair= it.value; nodePair=it.next().value;) {
+      if(seenNodePairs.has(nodePair)){
+          globalRedundancies[i] += 1;
+      }else{
+          globalActivations[i] += 1;
+      }
       seenNodePairs.add(nodePair)
-      globalActivations[i] += 1;
     }
   }
   console.log("calculateGlobalActivations1")
   //console.log(Array.from(seenNodePairs).sort());
   console.log(globalActivations)
 }
-calculateGlobalActivations();
+calculateGlobalActivationsAndRedundancies();
 
-var globalRedundancies = new Array(timeSteps).fill(0);
-function calculateGlobalRedundancies(){
-  seenNodePairs = new Set();
-  for(i=0; i<Object.keys(timeToNodePairs).length; i++){
-    globalRedundancies[i] = seenNodePairs.size
-
-    it = timeToNodePairs[i].values();
-    for (var nodePair= it.value; nodePair=it.next().value;) {
-//      if(seenNodePairs.has(nodePair){
-//          globalRedundancies[i] += 1;
-//      }
-      seenNodePairs.add(nodePair)
-      globalRedundancies[i] += 1;
-    }
-  }
-  console.log("calculateGlobalRedundancies")
-  //console.log(Array.from(seenNodePairs).sort());
-  console.log(globalRedundancies)
-}
-calculateGlobalRedundancies();
 
 function getStateOfGrapghAtT(t){
   edges = dgraph.timeArrays.links[t]
@@ -657,8 +643,8 @@ var points7 = convertToCoords(globalActivations, 100);
 var points6 = convertToCoords(globalVolatilities, 100);
 var points5 = convertToCoords(allConnectedComponents, 100);
 var points4 = convertToCoords(allDiameters, 100);
-var points3 = convertToCoords(calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint), 100);
-var points2 = convertToCoords(numberOfLinksAtEachTimeJump, 100);
+var points3 = convertToCoords(calculateDensity(numberOfNodePairsAtEachTimeJump, nodeSetLengthAtEachPoint), 100);
+var points2 = convertToCoords(numberOfNodePairsAtEachTimeJump, 100);
 var points1 = convertToCoords(nodeSetLengthAtEachPoint, 100);
 
 var originalpoints6 = globalVolatilities
@@ -673,13 +659,13 @@ var originalpoints4 = allDiameters
 max = Math.max.apply(Math, originalpoints4)
 graph4 = drawLineGraph(allDiameters, "purple", 3, "Diameter", 0, max)
 
-var originalpoints3 = calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint)
+var originalpoints3 = calculateDensity(numberOfNodePairsAtEachTimeJump, nodeSetLengthAtEachPoint)
 max = Math.max.apply(Math, originalpoints3)
-graph3 = drawLineGraph(calculateDensity(numberOfLinksAtEachTimeJump, nodeSetLengthAtEachPoint), "green", 3, "Density", 0, max)
+graph3 = drawLineGraph(calculateDensity(numberOfNodePairsAtEachTimeJump, nodeSetLengthAtEachPoint), "green", 3, "Density", 0, max)
 
-var originalpoints2 = numberOfLinksAtEachTimeJump
+var originalpoints2 = numberOfNodePairsAtEachTimeJump
 max = Math.max.apply(Math, originalpoints2)
-graph2 = drawLineGraph(numberOfLinksAtEachTimeJump, "blue", 2, "Links", 0, max)
+graph2 = drawLineGraph(numberOfNodePairsAtEachTimeJump, "blue", 2, "Node Pairs", 0, max)
 
 var originalpoints1 = nodeSetLengthAtEachPoint
 max = Math.max.apply(Math, originalpoints1)
@@ -805,6 +791,8 @@ document.addEventListener('mousemove', function(evt) {
   transition(originalpoints4, points4, graph4, mousePos.x);
   transition(originalpoints5, points5, graph5, mousePos.x);
   transition(originalpoints6, points6, graph6, mousePos.x);
+  transition(originalpoints7, points7, graph7, mousePos.x);
+  transition(originalpoints8, points8, graph8, mousePos.x);
 }, false);
 
 function moveTimeBars(evt){

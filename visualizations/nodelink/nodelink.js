@@ -646,14 +646,14 @@ function getNodeVolatility(n) {
     }
     numberOfNodePairs = Object.keys(nodePairsToNumberOfTimesTheyOccurred).length;
 
-    multiplier = 8;
+    multiplier = 1;
 
     console.log("volSum " + volatilitySum)
     console.log("numberOfNodePairs " + numberOfNodePairs)
     if(numberOfNodePairs <= 0 || volatilitySum <= 0){
       return 1;
     }
-    return volatilitySum/numberOfNodePairs * multiplier;
+    return volatilitySum * multiplier;
 }
 
 function getMaxNodeVolatility(n) {
@@ -885,8 +885,8 @@ function updateNodes() {
  //       .style("visibility", "hidden");
  // }
   if(volatilityMeasureEnabled){
-    visualNodes.attr('r', function (n) { return (2 * Math.log(getNodeVolatility(n))) + 1});
-    backingNodes.attr('r', function (n) { return (2 * Math.log(getMaxNodeVolatility(n))) + 1; });
+    visualNodes.attr('r', function (n) { return (4* Math.log( getNodeVolatility(n))) + 1});
+    backingNodes.attr('r', function (n) { return (4* Math.log(getMaxNodeVolatility(n))) + 1; });
   }
   if(redundancyMeasureEnabled){
     visualNodes.attr('r', function (n) { return (2 * Math.log(getNodeRedundancy(n))) + 1; });

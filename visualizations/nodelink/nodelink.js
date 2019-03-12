@@ -504,6 +504,33 @@ function flatten(arr) {
   }, []);
 }
 
+function getMaxNodeRedundancy(n){
+  ret = 1; // Don't want zero-sized circles
+  console.log("Calculating Max Redundancy")
+  previouslySeenNodePairs = nodesToActiveNodePairs[n._id].slice(0, 0)
+  currentNodePairs = nodesToActiveNodePairs[n._id].slice(0, times.length)
+
+  var mergedPrevious = flatten(previouslySeenNodePairs);
+  var filteredPrevious = mergedPrevious.filter(function (el) {
+    return el != null;
+  });
+  var mergedCurrent = flatten(currentNodePairs);
+  var filteredCurrent = mergedCurrent.filter(function (el) {
+    return el != null;
+  });
+  var previousSeenSet = new Set(filteredPrevious)
+  var currentSet = new Set(filteredCurrent)
+  for(val of previousSeenSet){
+    if(currentSet.has(val)){
+      ret += 1;
+    }
+  }
+  console.log(previousSeenSet)
+  console.log(currentSet)
+  console.log("Max redundancy IS " + ret)
+  return ret;
+}
+
 function getNodeRedundancy(n){
   ret = 1; // Don't want zero-sized circles
   console.log("Calculating Redundancy")
@@ -528,6 +555,33 @@ function getNodeRedundancy(n){
   console.log(previousSeenSet)
   console.log(currentSet)
   console.log("Redundancy IS " + ret)
+  return ret;
+}
+
+function getMaxNodeActivation(n){
+  console.log("Calculating Max Activation")
+  ret = 1; // Don't want zero-sized circles
+  previouslySeenNodePairs = nodesToActiveNodePairs[n._id].slice(0, 0)
+  currentNodePairs = nodesToActiveNodePairs[n._id].slice(0, time.length)
+
+  var mergedPrevious = flatten(previouslySeenNodePairs);
+  var filteredPrevious = mergedPrevious.filter(function (el) {
+    return el != null;
+  });
+  var mergedCurrent = flatten(currentNodePairs);
+  var filteredCurrent = mergedCurrent.filter(function (el) {
+    return el != null;
+  });
+  var previousSeenSet = new Set(filteredPrevious)
+  var currentSet = new Set(filteredCurrent)
+  for(val of currentSet){
+    if(!previousSeenSet.has(val)){
+      ret += 1;
+    }
+  }
+  console.log(previousSeenSet)
+  console.log(currentSet)
+  console.log("Max activation IS " + ret)
   return ret;
 }
 
@@ -560,11 +614,53 @@ function getNodeActivation(n){
 }
 
 
+
 function getNodeVolatility(n) {
 
     console.log("Calculating volatility")
 
     sliceNodesToActiveNodePairs = nodesToActiveNodePairs[n._id].slice(time_start._id, time_end._id);
+    //console.log(sliceNodesToActiveNodePairs);
+
+    nodePairsToNumberOfTimesTheyOccurred = {}
+
+    for(time=0; time<sliceNodesToActiveNodePairs.length; time++){
+      if(sliceNodesToActiveNodePairs[time]){
+        for(i=0; i<sliceNodesToActiveNodePairs[time].length; i++){
+          nodePair = sliceNodesToActiveNodePairs[time][i]
+          if(nodePairsToNumberOfTimesTheyOccurred[nodePair]){
+            nodePairsToNumberOfTimesTheyOccurred[nodePair] += 1
+          }else{
+            nodePairsToNumberOfTimesTheyOccurred[nodePair] = 1
+          }
+        }
+      }
+    }
+
+    volatilitySum = 0;
+    for(var nodePair in nodePairsToNumberOfTimesTheyOccurred){
+      occurrences = nodePairsToNumberOfTimesTheyOccurred[nodePair]
+      arrayChunk1 = new Array(occurrences).fill( 1 );
+      arrayChunk2 = new Array(sliceNodesToActiveNodePairs.length-occurrences).fill( 0 );
+      volatilitySum += arrayChunk1.concat(arrayChunk2).stanDeviate();
+    }
+    numberOfNodePairs = Object.keys(nodePairsToNumberOfTimesTheyOccurred).length;
+
+    multiplier = 8;
+
+    console.log("volSum " + volatilitySum)
+    console.log("numberOfNodePairs " + numberOfNodePairs)
+    if(numberOfNodePairs <= 0 || volatilitySum <= 0){
+      return 1;
+    }
+    return volatilitySum/numberOfNodePairs * multiplier;
+}
+
+function getMaxNodeVolatility(n) {
+
+    console.log("Calculating volatility")
+
+    sliceNodesToActiveNodePairs = nodesToActiveNodePairs[n._id].slice(0, times.length);
     //console.log(sliceNodesToActiveNodePairs);
 
     nodePairsToNumberOfTimesTheyOccurred = {}
@@ -617,7 +713,7 @@ function updateLabelVisibility() {
                 }
                 else if (isHidingNode(n1, n2)) {
                     hiddenLabels.push(n1);
-                    break;
+                    break
                 }
             }
         }
@@ -670,6 +766,23 @@ function getLinksFromNode(n){
   sources = everyIndexOf(n._id, n.g.linkArrays.source)
   targets = everyIndexOf(n._id, n.g.linkArrays.target)
   return sources.concat(targets)
+}
+
+
+function getMaxNumberOfNodeEdges(n){
+  //time_start
+  //time_end
+  allLinks = getLinksFromNode(n)
+  numberOfLinksInTimeFrame = 1
+  for(i=0; i<times.length; i++){
+    for(j=0;j<allLinks.length;j++){
+      if(n.g.timeArrays.links[i].indexOf(allLinks[j]) > -1){
+        numberOfLinksInTimeFrame += 1
+      }
+    }
+  }
+
+  return numberOfLinksInTimeFrame
 }
 
 function getNumberOfNodeEdges(n){
@@ -772,20 +885,20 @@ function updateNodes() {
  //       .style("visibility", "hidden");
  // }
   if(volatilityMeasureEnabled){
-    visualNodes.attr('r', function (n) { return (2 * Math.log(getNodeVolatility(n)))});
-    backingNodes.attr('r', function (n) { return (4 * Math.log(getNodeVolatility(n))) + 1; });
+    visualNodes.attr('r', function (n) { return (2 * Math.log(getNodeVolatility(n))) + 1});
+    backingNodes.attr('r', function (n) { return (2 * Math.log(getMaxNodeVolatility(n))) + 1; });
   }
   if(redundancyMeasureEnabled){
     visualNodes.attr('r', function (n) { return (2 * Math.log(getNodeRedundancy(n))) + 1; });
-    backingNodes.attr('r', function (n) { return (4 * Math.log(getNodeVolatility(n))) + 1; });
+    backingNodes.attr('r', function (n) { return (2 * Math.log(getMaxNodeRedundancy(n))) + 1; });
   }
   if(activationMeasureEnabled){
     visualNodes.attr('r', function (n) { return (2 * Math.log(getNodeActivation(n))) + 1; });
-    backingNodes.attr('r', function (n) { return (4 * Math.log(getNodeVolatility(n))) + 1; });
+    backingNodes.attr('r', function (n) { return (2 * Math.log(getMaxNodeActivation(n))) + 1; });
   }
   if(centralityMeasureEnabled){
       visualNodes.attr('r', function (n) { return (2 * Math.log(getNumberOfNodeEdges(n))) + 1; });
-      backingNodes.attr('r', function (n) { return (4 * Math.log(getNodeVolatility(n))) + 1; });
+      backingNodes.attr('r', function (n) { return (2 * Math.log(getMaxNumberOfNodeEdges(n))) + 1; });
   }
 
     visualNodes

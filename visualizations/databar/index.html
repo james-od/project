@@ -115,6 +115,7 @@ $(".slides").sortable({
     },
 });
 
+alert("hello");
 width = window.innerWidth - 80;
 //height =
 
@@ -410,7 +411,7 @@ function calculateGlobalActivations(){
       globalActivations[i] += 1;
     }
   }
-  console.log("calculateGlobalActivations")
+  console.log("calculateGlobalActivations1")
   //console.log(Array.from(seenNodePairs).sort());
   console.log(globalActivations)
 }
@@ -420,15 +421,18 @@ var globalRedundancies = new Array(timeSteps).fill(0);
 function calculateGlobalRedundancies(){
   seenNodePairs = new Set();
   for(i=0; i<Object.keys(timeToNodePairs).length; i++){
-    globalActivations[i] = seenNodePairs.size
+    globalRedundancies[i] = seenNodePairs.size
 
     it = timeToNodePairs[i].values();
     for (var nodePair= it.value; nodePair=it.next().value;) {
+//      if(seenNodePairs.has(nodePair){
+//          globalRedundancies[i] += 1;
+//      }
       seenNodePairs.add(nodePair)
-      globalActivations[i] += 1;
+      globalRedundancies[i] += 1;
     }
   }
-  console.log("calculateGlobalActivations")
+  console.log("calculateGlobalRedundancies")
   //console.log(Array.from(seenNodePairs).sort());
   console.log(globalRedundancies)
 }

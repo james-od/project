@@ -809,11 +809,34 @@ function getNumberOfNodeEdges(n){
 
 function mouseOverNode(n) {
     numberOfEdges = getNumberOfNodeEdges(n)
+    measureLabel = ""
+    measureValue = 0
+    fullTimePeriodValue = 0
+    if(activationMeasureEnabled){
+        measureLabel = "Activation"
+        measureValue = Math.round(getNodeActivation(n) * 100)/100
+        fullTimePeriodValue = Math.round(getMaxNodeActivation(n) *100)/100
+    }
+    if(redundancyMeasureEnabled){
+        measureLabel = "Redundancy"
+        measureValue = Math.round(getNodeRedundancy(n) * 100)/100
+        fullTimePeriodValue = Math.round(getMaxNodeRedundancy(n) *100)/100
+    }
+    if(volatilityMeasureEnabled){
+        measureLabel = "Volatility"
+        measureValue = Math.round(getNodeVolatility(n) * 100)/100
+        fullTimePeriodValue = Math.round(getMaxNodeVolatility(n) * 100)/100
+    }
+    if(centralityMeasureEnabled){
+        measureLabel = "Degree Centrality"
+        measureValue = Math.round(getNumberOfNodeEdges(n) * 100)/100
+        fullTimePeriodValue = Math.round(getMaxNumberOfNodeEdges(n) * 100)/100
+    }
     networkcube.highlight('set', { nodes: [n] });
         div.transition()
             .duration(200)
             .style("opacity", .9);
-        div .html("Volatility: " + Math.round(getNodeVolatility(n) * 100)/100 + " Centrality: "+numberOfEdges)
+        div .html(measureLabel + "<br/><br/>Selected Period: " + (measureValue-1) + "<br/>Full period: "+(fullTimePeriodValue-1))
             .style("left", (d3.event.pageX) + "px")
             .style("top", (d3.event.pageY - 40) + "px");
 }
@@ -1054,6 +1077,7 @@ function stretchVector(vec, finalLength) {
 activeMeasures = []
 window.onmessage = function(e){
     //alert(JSON.stringify(e.data))
+    console.log("Received message")
     if(activeMeasures.indexOf(e.data.measure) > -1){
         activeMeasures.splice(activeMeasures.indexOf(e.data.measure), 1)
         if(e.data.measure = "Volatility"){
@@ -1063,9 +1087,12 @@ window.onmessage = function(e){
     }else{
         activeMeasures.push(e.data.measure)
     }
+    console.log("Checking data bar presence")
     if(activeMeasures.indexOf("Data Bar") > -1){
+        console.log("HIDE DATA BAR")
         hideDataBar()
     }else{
+        console.log("DONT HIDE DATA BAR")
         showDataBar()
     }
     // if(activeMeasures.indexOf("Connected Nodes") > -1){

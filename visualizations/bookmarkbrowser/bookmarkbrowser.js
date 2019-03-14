@@ -56,7 +56,7 @@ function measureCheckboxChange(id){
 
 
 function updateMeasureList() {
-    var measures = ['Data Bar', 'Volatility', 'Visualised local measure']
+    var measures = ['Data Bar', 'Visualised local measure']
     var title = d3.select('#title_measure');
     title.html('Measure Selections' + ' (' + measures.length + ')');
 
@@ -115,7 +115,7 @@ function updateMeasureList() {
               .attr('width', RECT_SIZE)
               .attr('height', RECT_SIZE)
               .attr('id', "checkbox-" + d.toLowerCase().replace(/\s/g, ''))
-              .on('click', networkcube.measureChange(d))
+              .on('click', function(d){networkcube.measureChange(d)})
               .style('fill', "red");
         }
 
